@@ -38,74 +38,81 @@ const mongoose_1 = __importStar(require("mongoose"));
 const wateringScheduleSchema = new mongoose_1.Schema({
     userId: {
         type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+        ref: "User",
+        required: true,
     },
     locationId: {
         type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'Location',
-        required: true
+        ref: "Location",
+        required: true,
     },
     deviceId: {
         type: String,
-        ref: 'Device'
+        ref: "Device",
     },
     date: {
         type: Date,
-        required: true
+        required: true,
     },
     status: {
         type: String,
-        enum: ['pending', 'in_progress', 'completed', 'skipped', 'cancelled'],
-        default: 'pending'
+        enum: ["pending", "in_progress", "completed", "skipped", "cancelled"],
+        default: "pending",
     },
     recommendedAmount: {
         type: Number,
-        required: true
+        required: true,
     },
     actualAmount: {
-        type: Number
+        type: Number,
     },
     soilConditions: {
         moisture10cm: {
             type: Number,
-            required: true
+            required: true,
         },
         moisture20cm: {
             type: Number,
-            required: true
+            required: true,
         },
         moisture30cm: {
             type: Number,
-            required: true
+            required: true,
         },
         soilType: {
             type: String,
             required: true,
-            enum: ['Lateritic', 'Sandy Loam', 'Cinnamon Sand', 'Red Yellow Podzolic', 'Alluvial']
-        }
+            enum: [
+                "Lateritic",
+                "Sandy Loam",
+                "Cinnamon Sand",
+                "Red Yellow Podzolic",
+                "Alluvial",
+            ],
+        },
     },
     weatherConditions: {
         temperature: {
             type: Number,
-            required: true
+            required: true,
         },
         humidity: {
             type: Number,
-            required: true
+            required: true,
         },
         rainfall: {
             type: Number,
-            required: true
-        }
+            required: true,
+        },
     },
     plantAge: {
         type: Number,
-        required: true
+        required: false,
+        default: 4,
     },
     predictionConfidence: {
         type: Number,
-        required: true
+        required: true,
     },
     executionDetails: {
         startTime: Date,
@@ -113,24 +120,24 @@ const wateringScheduleSchema = new mongoose_1.Schema({
         duration: Number,
         executedBy: {
             type: String,
-            enum: ['automatic', 'manual']
+            enum: ["automatic", "manual"],
         },
         deviceStatus: String,
-        errors: [String]
+        errors: [String],
     },
     notes: {
-        type: String
+        type: String,
     },
     deletedAt: {
         type: Date,
-        default: null
-    }
+        default: null,
+    },
 }, {
-    timestamps: true
+    timestamps: true,
 });
 wateringScheduleSchema.index({ userId: 1, locationId: 1, date: 1 });
 wateringScheduleSchema.index({ deviceId: 1, date: 1 });
 wateringScheduleSchema.index({ status: 1, date: 1 });
 wateringScheduleSchema.index({ deletedAt: 1 });
-exports.WateringSchedule = mongoose_1.default.model('WateringSchedule', wateringScheduleSchema);
+exports.WateringSchedule = mongoose_1.default.model("WateringSchedule", wateringScheduleSchema);
 //# sourceMappingURL=wateringSchedule.js.map

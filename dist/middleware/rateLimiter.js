@@ -11,7 +11,7 @@ const errorHandler = (req, res) => {
 };
 exports.apiLimiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: 10000,
     message: 'Too many requests from this IP, please try again later',
     standardHeaders: true,
     legacyHeaders: false,

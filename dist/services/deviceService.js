@@ -10,14 +10,14 @@ class DeviceService {
         try {
             const existingDevice = await device_1.Device.findOne({
                 deviceId: data.deviceId,
-                isActive: true
+                isActive: true,
             });
             if (existingDevice) {
                 throw new errorHandler_1.AppError(400, "Device ID already exists");
             }
             const device = await device_1.Device.create({
                 ...data,
-                userId: new mongoose_1.Types.ObjectId(userId)
+                userId: new mongoose_1.Types.ObjectId(userId),
             });
             return device;
         }
@@ -31,7 +31,7 @@ class DeviceService {
         try {
             return await device_1.Device.find({
                 userId: new mongoose_1.Types.ObjectId(userId),
-                isActive: true
+                isActive: true,
             }).populate("locationId", "name coordinates");
         }
         catch (error) {
@@ -43,12 +43,20 @@ class DeviceService {
             const device = await device_1.Device.findOne({
                 deviceId: deviceId,
                 userId: new mongoose_1.Types.ObjectId(userId),
-                isActive: true
-            }).populate("locationId", "name coordinates");
+                isActive: true,
+            });
             if (!device) {
                 throw new errorHandler_1.AppError(404, "Device not found");
             }
-            return device;
+            const location = await location_1.Location.findOne({
+                deviceId: deviceId,
+                isActive: true,
+            }).select("name coordinates area soilType totalTrees status plantationDate description");
+            const deviceData = device.toObject();
+            return {
+                ...deviceData,
+                assignedLocation: location || null,
+            };
         }
         catch (error) {
             if (error instanceof errorHandler_1.AppError)
@@ -61,7 +69,7 @@ class DeviceService {
             const device = await device_1.Device.findOneAndUpdate({
                 deviceId: deviceId,
                 userId: new mongoose_1.Types.ObjectId(userId),
-                isActive: true
+                isActive: true,
             }, data, { new: true, runValidators: true });
             if (!device) {
                 throw new errorHandler_1.AppError(404, "Device not found");
@@ -79,13 +87,15 @@ class DeviceService {
             const device = await device_1.Device.findOneAndUpdate({
                 deviceId: deviceId,
                 userId: new mongoose_1.Types.ObjectId(userId),
-                isActive: true
+                isActive: true,
             }, { isActive: false }, { new: true });
             if (!device) {
                 throw new errorHandler_1.AppError(404, "Device not found");
             }
             if (device.locationId) {
-                await location_1.Location.findByIdAndUpdate(device.locationId, { $unset: { deviceId: 1 } });
+                await location_1.Location.findByIdAndUpdate(device.locationId, {
+                    $unset: { deviceId: 1 },
+                });
             }
         }
         catch (error) {
@@ -99,8 +109,8 @@ class DeviceService {
             const device = await device_1.Device.findOneAndUpdate({ deviceId, isActive: true }, {
                 lastReading: {
                     ...reading,
-                    timestamp: new Date()
-                }
+                    timestamp: new Date(),
+                },
             }, { new: true });
             if (!device) {
                 throw new errorHandler_1.AppError(404, "Device not found");

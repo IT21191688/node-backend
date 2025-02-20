@@ -39,13 +39,8 @@ const validateRegister = (req, res, next) => {
             message: 'Please provide a valid email address'
         });
     }
-    if (!password || !isValidPassword(password)) {
-        errors.push({
-            field: 'password',
-            message: 'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character'
-        });
-    }
     if (errors.length > 0) {
+        console.log(errors);
         return next(new errorHandler_1.AppError(400, 'Validation failed', errors));
     }
     next();
