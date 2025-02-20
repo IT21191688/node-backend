@@ -12,22 +12,22 @@ class LocationService {
                 const device = await device_1.Device.findOne({
                     deviceId: data.deviceId,
                     userId: new mongoose_1.Types.ObjectId(userId),
-                    isActive: true
+                    isActive: true,
                 });
                 if (!device) {
-                    throw new errorHandler_1.AppError(404, 'Device not found');
+                    throw new errorHandler_1.AppError(404, "Device not found");
                 }
                 const isDeviceAssigned = await location_1.Location.findOne({
                     deviceId: data.deviceId,
-                    isActive: true
+                    isActive: true,
                 });
                 if (isDeviceAssigned) {
-                    throw new errorHandler_1.AppError(400, 'Device is already assigned to another location');
+                    throw new errorHandler_1.AppError(400, "Device is already assigned to another location");
                 }
             }
             const location = await location_1.Location.create({
                 ...data,
-                userId: new mongoose_1.Types.ObjectId(userId)
+                userId: new mongoose_1.Types.ObjectId(userId),
             });
             if (data.deviceId) {
                 await device_1.Device.findOneAndUpdate({ deviceId: data.deviceId }, { locationId: location._id });
@@ -37,36 +37,70 @@ class LocationService {
         catch (error) {
             if (error instanceof errorHandler_1.AppError)
                 throw error;
-            throw new errorHandler_1.AppError(400, 'Error creating location');
+            throw new errorHandler_1.AppError(400, "Error creating location");
         }
     }
     async getLocations(userId) {
         try {
-            return await location_1.Location.find({
+            const locations = await location_1.Location.find({
                 userId: new mongoose_1.Types.ObjectId(userId),
-                isActive: true
-            }).populate('deviceId');
+                isActive: true,
+            }).lean();
+            const deviceIds = locations
+                .filter((location) => typeof location.deviceId === "string")
+                .map((location) => location.deviceId);
+            const devices = deviceIds.length
+                ? await device_1.Device.find({ deviceId: { $in: deviceIds } })
+                    .select("_id deviceId type status")
+                    .lean()
+                : [];
+            return locations.map((location) => {
+                const device = devices.find((d) => d.deviceId === location.deviceId);
+                return {
+                    ...location,
+                    device: device || undefined,
+                };
+            });
         }
         catch (error) {
-            throw new errorHandler_1.AppError(500, 'Error fetching locations');
+            console.error("Error in getLocations:", error);
+            throw new errorHandler_1.AppError(500, "Error fetching locations");
         }
     }
     async getLocationById(locationId, userId) {
         try {
-            const location = await location_1.Location.findOne({
-                _id: locationId,
-                userId: new mongoose_1.Types.ObjectId(userId),
-                isActive: true
-            }).populate('deviceId');
-            if (!location) {
-                throw new errorHandler_1.AppError(404, 'Location not found');
+            if (!mongoose_1.Types.ObjectId.isValid(locationId) ||
+                !mongoose_1.Types.ObjectId.isValid(userId)) {
+                throw new errorHandler_1.AppError(400, "Invalid locationId or userId");
             }
-            return location;
+            let location = await location_1.Location.findOne({
+                _id: new mongoose_1.Types.ObjectId(locationId),
+                userId: new mongoose_1.Types.ObjectId(userId),
+                isActive: true,
+            }).lean();
+            if (!location) {
+                throw new errorHandler_1.AppError(404, "Location not found or is inactive");
+            }
+            let device = null;
+            if (location.deviceId && typeof location.deviceId === "string") {
+                device = await device_1.Device.findOne({ deviceId: location.deviceId })
+                    .select("_id deviceId type status")
+                    .lean();
+            }
+            return {
+                ...location,
+                device: device || undefined,
+            };
         }
         catch (error) {
-            if (error instanceof errorHandler_1.AppError)
+            console.error("Error in getLocationById:", error);
+            if (error instanceof errorHandler_1.AppError) {
                 throw error;
-            throw new errorHandler_1.AppError(500, 'Error fetching location');
+            }
+            if (error.name === "CastError") {
+                throw new errorHandler_1.AppError(400, "Invalid ID format");
+            }
+            throw new errorHandler_1.AppError(500, "Error fetching location");
         }
     }
     async updateLocation(locationId, userId, data) {
@@ -74,17 +108,17 @@ class LocationService {
             const location = await location_1.Location.findOneAndUpdate({
                 _id: locationId,
                 userId: new mongoose_1.Types.ObjectId(userId),
-                isActive: true
-            }, data, { new: true, runValidators: true }).populate('deviceId');
+                isActive: true,
+            }, data, { new: true, runValidators: true }).populate("deviceId");
             if (!location) {
-                throw new errorHandler_1.AppError(404, 'Location not found');
+                throw new errorHandler_1.AppError(404, "Location not found");
             }
             return location;
         }
         catch (error) {
             if (error instanceof errorHandler_1.AppError)
                 throw error;
-            throw new errorHandler_1.AppError(400, 'Error updating location');
+            throw new errorHandler_1.AppError(400, "Error updating location");
         }
     }
     async deleteLocation(locationId, userId) {
@@ -92,10 +126,10 @@ class LocationService {
             const location = await location_1.Location.findOneAndUpdate({
                 _id: locationId,
                 userId: new mongoose_1.Types.ObjectId(userId),
-                isActive: true
+                isActive: true,
             }, { isActive: false }, { new: true });
             if (!location) {
-                throw new errorHandler_1.AppError(404, 'Location not found');
+                throw new errorHandler_1.AppError(404, "Location not found");
             }
             if (location.deviceId) {
                 await device_1.Device.findOneAndUpdate({ deviceId: location.deviceId }, { $unset: { locationId: 1 } });
@@ -104,7 +138,7 @@ class LocationService {
         catch (error) {
             if (error instanceof errorHandler_1.AppError)
                 throw error;
-            throw new errorHandler_1.AppError(500, 'Error deleting location');
+            throw new errorHandler_1.AppError(500, "Error deleting location");
         }
     }
 }

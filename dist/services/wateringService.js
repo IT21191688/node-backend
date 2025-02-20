@@ -72,7 +72,7 @@ class WateringService {
                 soilMoisture10cm: soilData.moisture10cm,
                 soilMoisture20cm: soilData.moisture20cm,
                 soilMoisture30cm: soilData.moisture30cm,
-                plantAge: data.plantAge,
+                plantAge: this.calculatePlantAge(location.plantationDate),
                 temperature: weatherData.temperature,
                 humidity: weatherData.humidity,
                 rainfall: weatherData.rainfall,
@@ -94,6 +94,7 @@ class WateringService {
             return schedule;
         }
         catch (error) {
+            console.log(error);
             if (error instanceof errorHandler_1.AppError)
                 throw error;
             throw new errorHandler_1.AppError(400, "Error creating watering schedule");
