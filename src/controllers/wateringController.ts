@@ -89,6 +89,18 @@ export class WateringController {
         });
     });
 
+    getScheduleById = asyncHandler(async (req: Request, res: Response) => {
+        const schedule = await this.wateringService.getScheduleById(
+            req.params.id,
+            req.user.id
+        );
+
+        res.status(200).json({
+            status: 'success',
+            data: { schedule }
+        });
+    });
+
     getLocationSchedules = asyncHandler(async (req: Request, res: Response) => {
         const { startDate, endDate } = req.query;
         

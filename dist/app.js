@@ -17,6 +17,7 @@ const config_1 = require("./config");
 const errorHandler_1 = require("./middleware/errorHandler");
 const requestLogger_1 = require("./middleware/requestLogger");
 const logger_1 = __importDefault(require("./utils/logger"));
+const sheduleCron_1 = require("./cron/sheduleCron");
 class App {
     constructor() {
         this.app = (0, express_1.default)();
@@ -25,6 +26,7 @@ class App {
         this.configureRoutes();
         this.configureErrorHandling();
         this.handleProcessEvents();
+        new sheduleCron_1.ScheduleCron();
     }
     configureMiddleware() {
         this.app.use(this.addRequestId);

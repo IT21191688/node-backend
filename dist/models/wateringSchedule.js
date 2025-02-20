@@ -41,13 +41,22 @@ const wateringScheduleSchema = new mongoose_1.Schema({
         ref: 'User',
         required: true
     },
+    locationId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'Location',
+        required: true
+    },
+    deviceId: {
+        type: String,
+        ref: 'Device'
+    },
     date: {
         type: Date,
         required: true
     },
     status: {
         type: String,
-        enum: ['pending', 'completed', 'skipped'],
+        enum: ['pending', 'in_progress', 'completed', 'skipped', 'cancelled'],
         default: 'pending'
     },
     recommendedAmount: {
@@ -98,12 +107,30 @@ const wateringScheduleSchema = new mongoose_1.Schema({
         type: Number,
         required: true
     },
+    executionDetails: {
+        startTime: Date,
+        endTime: Date,
+        duration: Number,
+        executedBy: {
+            type: String,
+            enum: ['automatic', 'manual']
+        },
+        deviceStatus: String,
+        errors: [String]
+    },
     notes: {
         type: String
+    },
+    deletedAt: {
+        type: Date,
+        default: null
     }
 }, {
     timestamps: true
 });
-wateringScheduleSchema.index({ userId: 1, date: 1 });
+wateringScheduleSchema.index({ userId: 1, locationId: 1, date: 1 });
+wateringScheduleSchema.index({ deviceId: 1, date: 1 });
+wateringScheduleSchema.index({ status: 1, date: 1 });
+wateringScheduleSchema.index({ deletedAt: 1 });
 exports.WateringSchedule = mongoose_1.default.model('WateringSchedule', wateringScheduleSchema);
 //# sourceMappingURL=wateringSchedule.js.map

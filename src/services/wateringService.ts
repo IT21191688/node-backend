@@ -318,6 +318,28 @@ export class WateringService {
     }
   }
 
+  async getScheduleById(
+    scheduleId: string,
+    userId: string
+  ): Promise<IWateringSchedule> {
+    try {
+      const schedule = await WateringSchedule.findOne({
+        _id: new Types.ObjectId(scheduleId),
+        userId: new Types.ObjectId(userId),
+        deletedAt: null,
+      }).populate("locationId");
+
+      if (!schedule) {
+        throw new AppError(404, "Schedule not found");
+      }
+
+      return schedule;
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      throw new AppError(500, "Error fetching schedule");
+    }
+  }
+
   private calculatePlantAge(plantationDate: Date): number {
     const diffTime = Math.abs(Date.now() - new Date(plantationDate).getTime());
     const diffYears = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 365));
