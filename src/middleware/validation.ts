@@ -46,12 +46,12 @@ export const validateRegister = (req: Request, res: Response, next: NextFunction
         });
     }
 
-    if (!password || !isValidPassword(password)) {
-        errors.push({
-            field: 'password',
-            message: 'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character'
-        });
-    }
+    // if (!password || !isValidPassword(password)) {
+    //     errors.push({
+    //         field: 'password',
+    //         message: 'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character'
+    //     });
+    // }
 
     // if (password !== confirmPassword) {
     //     errors.push({
@@ -61,6 +61,7 @@ export const validateRegister = (req: Request, res: Response, next: NextFunction
     // }
 
     if (errors.length > 0) {
+        console.log(errors);
         return next(new AppError(400, 'Validation failed', errors));
     }
 
