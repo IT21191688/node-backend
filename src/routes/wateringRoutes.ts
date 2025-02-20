@@ -50,4 +50,9 @@ router.delete(
     wateringController.deleteSchedule
 );
 
+router.get(
+    '/schedule/:id',
+    wateringController.getScheduleById
+);
+
 export default router;

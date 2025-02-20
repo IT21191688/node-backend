@@ -6,6 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const authRoutes_1 = __importDefault(require("./authRoutes"));
 const userRoutes_1 = __importDefault(require("./userRoutes"));
+const wateringRoutes_1 = __importDefault(require("./wateringRoutes"));
+const locationRoutes_1 = __importDefault(require("./locationRoutes"));
+const deviceRoutes_1 = __importDefault(require("./deviceRoutes"));
 const rateLimiter_1 = require("../middleware/rateLimiter");
 const router = (0, express_1.Router)();
 router.get('/health', (_req, res) => {
@@ -19,5 +22,8 @@ router.get('/health', (_req, res) => {
 router.use(rateLimiter_1.rateLimiters.public);
 router.use('/v1/auth', authRoutes_1.default);
 router.use('/v1/users', userRoutes_1.default);
+router.use('/v1/watering', wateringRoutes_1.default);
+router.use('/v1/locations', locationRoutes_1.default);
+router.use('/v1/devices', deviceRoutes_1.default);
 exports.default = router;
 //# sourceMappingURL=index.js.map

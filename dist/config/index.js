@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.config = void 0;
 exports.config = {
-    port: Number(process.env.PORT) || 3000,
+    port: Number(process.env.PORT) || 7000,
     corsOrigin: process.env.CORS_ORIGIN || '*',
     database: {
         url: 'mongodb+srv://sadeepa:sadeepa123@studentmanagement.in6etp1.mongodb.net/hello?retryWrites=true&w=majority',

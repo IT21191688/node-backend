@@ -10,7 +10,7 @@ class AuthController {
             this.setTokenCookies(res, token, refreshToken);
             res.status(201).json({
                 status: 'success',
-                data: { user, token }
+                data: { user, token, refreshToken }
             });
         });
         this.login = (0, errorHandler_1.asyncHandler)(async (req, res) => {
@@ -19,7 +19,7 @@ class AuthController {
             this.setTokenCookies(res, token, refreshToken);
             res.status(200).json({
                 status: 'success',
-                data: { user, token }
+                data: { user, token, refreshToken }
             });
         });
         this.forgotPassword = (0, errorHandler_1.asyncHandler)(async (req, res) => {
