@@ -1,0 +1,30 @@
+{"level":"info","message":"Server running on port 7000 in development mode","service":"coconut-farm-api","timestamp":"2025-02-22 00:26:08"}
+{"level":"info","message":"Server URL: http://localhost:7000","service":"coconut-farm-api","timestamp":"2025-02-22 00:26:08"}
+{"database":"hello","host":"ac-5qiwzr2-shard-00-00.in6etp1.mongodb.net","level":"info","message":"MongoDB Connected Successfully!","port":27017,"service":"coconut-farm-api","timestamp":"2025-02-22 00:26:10"}
+{"level":"info","message":"Server running on port 7000 in development mode","service":"coconut-farm-api","timestamp":"2025-02-22 00:27:25"}
+{"level":"info","message":"Server URL: http://localhost:7000","service":"coconut-farm-api","timestamp":"2025-02-22 00:27:25"}
+{"database":"hello","host":"ac-5qiwzr2-shard-00-02.in6etp1.mongodb.net","level":"info","message":"MongoDB Connected Successfully!","port":27017,"service":"coconut-farm-api","timestamp":"2025-02-22 00:27:26"}
+{"level":"info","message":"Server running on port 7000 in development mode","service":"coconut-farm-api","timestamp":"2025-02-22 00:27:44"}
+{"level":"info","message":"Server URL: http://localhost:7000","service":"coconut-farm-api","timestamp":"2025-02-22 00:27:44"}
+{"database":"hello","host":"ac-5qiwzr2-shard-00-00.in6etp1.mongodb.net","level":"info","message":"MongoDB Connected Successfully!","port":27017,"service":"coconut-farm-api","timestamp":"2025-02-22 00:27:45"}
+{"level":"info","message":"Server running on port 7000 in development mode","service":"coconut-farm-api","timestamp":"2025-02-22 00:28:00"}
+{"level":"info","message":"Server URL: http://localhost:7000","service":"coconut-farm-api","timestamp":"2025-02-22 00:28:00"}
+{"database":"hello","host":"ac-5qiwzr2-shard-00-02.in6etp1.mongodb.net","level":"info","message":"MongoDB Connected Successfully!","port":27017,"service":"coconut-farm-api","timestamp":"2025-02-22 00:28:02"}
+{"level":"info","message":"Server running on port 7000 in development mode","service":"coconut-farm-api","timestamp":"2025-02-22 00:28:29"}
+{"level":"info","message":"Server URL: http://localhost:7000","service":"coconut-farm-api","timestamp":"2025-02-22 00:28:29"}
+{"database":"hello","host":"ac-5qiwzr2-shard-00-01.in6etp1.mongodb.net","level":"info","message":"MongoDB Connected Successfully!","port":27017,"service":"coconut-farm-api","timestamp":"2025-02-22 00:28:30"}
+{"level":"info","message":"Server running on port 7000 in development mode","service":"coconut-farm-api","timestamp":"2025-02-22 00:31:15"}
+{"level":"info","message":"Server URL: http://localhost:7000","service":"coconut-farm-api","timestamp":"2025-02-22 00:31:15"}
+{"database":"hello","host":"ac-5qiwzr2-shard-00-01.in6etp1.mongodb.net","level":"info","message":"MongoDB Connected Successfully!","port":27017,"service":"coconut-farm-api","timestamp":"2025-02-22 00:31:17"}
+{"level":"info","message":"Server running on port 7000 in development mode","service":"coconut-farm-api","timestamp":"2025-02-22 00:32:42"}
+{"level":"info","message":"Server URL: http://localhost:7000","service":"coconut-farm-api","timestamp":"2025-02-22 00:32:42"}
+{"database":"hello","host":"ac-5qiwzr2-shard-00-00.in6etp1.mongodb.net","level":"info","message":"MongoDB Connected Successfully!","port":27017,"service":"coconut-farm-api","timestamp":"2025-02-22 00:32:43"}
+{"level":"info","message":"Server running on port 7000 in development mode","service":"coconut-farm-api","timestamp":"2025-02-22 00:33:53"}
+{"level":"info","message":"Server URL: http://localhost:7000","service":"coconut-farm-api","timestamp":"2025-02-22 00:33:53"}
+{"database":"hello","host":"ac-5qiwzr2-shard-00-01.in6etp1.mongodb.net","level":"info","message":"MongoDB Connected Successfully!","port":27017,"service":"coconut-farm-api","timestamp":"2025-02-22 00:33:55"}
+{"level":"info","message":"Server running on port 7000 in development mode","service":"coconut-farm-api","timestamp":"2025-02-22 00:36:46"}
+{"level":"info","message":"Server URL: http://localhost:7000","service":"coconut-farm-api","timestamp":"2025-02-22 00:36:46"}
+{"database":"hello","host":"ac-5qiwzr2-shard-00-02.in6etp1.mongodb.net","level":"info","message":"MongoDB Connected Successfully!","port":27017,"service":"coconut-farm-api","timestamp":"2025-02-22 00:36:48"}
+{"level":"info","message":"Server running on port 7000 in development mode","service":"coconut-farm-api","timestamp":"2025-02-22 00:49:16"}
+{"level":"info","message":"Server URL: http://localhost:7000","service":"coconut-farm-api","timestamp":"2025-02-22 00:49:16"}
+{"database":"hello","host":"ac-5qiwzr2-shard-00-01.in6etp1.mongodb.net","level":"info","message":"MongoDB Connected Successfully!","port":27017,"service":"coconut-farm-api","timestamp":"2025-02-22 00:49:18"}
