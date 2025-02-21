@@ -1,41 +1,67 @@
 import { Schema, model, Document } from 'mongoose';
 
-interface IMonthlyData {
-  month: number;
-  sm_10: number;
-  sm_20: number;
-  sm_30: number;
-  age: number;
+interface IInputData {
+  humidity: number;
+  plant_age: number;
+  rainfall: number;
+  soil_moisture_10cm: number;
+  soil_moisture_20cm: number;
+  soil_moisture_30cm: number;
   soil_type: number;
   temperature: number;
-  humidity: number;
-  rainfall: number;
-  weatherDescription: string;
+  weather_description: string;
+}
+
+interface IMonthlyPrediction {
+  confidence_score: number;
+  ensemble_prediction: number;
+  input_data: IInputData;
+  long_term_prediction: number;
+  month: number;
+  month_name: string;
+  seasonal_factor: number;
+  seasonal_prediction: number;
+  weights: number[];
+  year: number;
 }
 
 interface IYieldPrediction extends Document {
   year: number;
-  monthly_data: IMonthlyData[];
-  predicted_yield: number;
+  average_prediction: number;
+  monthly_predictions: IMonthlyPrediction[];
+  status: string;
 }
 
-const MonthlyDataSchema = new Schema<IMonthlyData>({
-  month: { type: Number, required: true },
-  sm_10: { type: Number, required: true },
-  sm_20: { type: Number, required: true },
-  sm_30: { type: Number, required: true },
-  age: { type: Number, required: true },
+const InputDataSchema = new Schema<IInputData>({
+  humidity: { type: Number, required: true },
+  plant_age: { type: Number, required: true },
+  rainfall: { type: Number, required: true },
+  soil_moisture_10cm: { type: Number, required: true },
+  soil_moisture_20cm: { type: Number, required: true },
+  soil_moisture_30cm: { type: Number, required: true },
   soil_type: { type: Number, required: true },
   temperature: { type: Number, required: true },
-  humidity: { type: Number, required: true },
-  rainfall: { type: Number, required: true },
-  weatherDescription: { type: String, required: true },
+  weather_description: { type: String, required: true },
+});
+
+const MonthlyPredictionSchema = new Schema<IMonthlyPrediction>({
+  confidence_score: { type: Number, required: true },
+  ensemble_prediction: { type: Number, required: true },
+  input_data: { type: InputDataSchema, required: true },
+  long_term_prediction: { type: Number, required: true },
+  month: { type: Number, required: true },
+  month_name: { type: String, required: true },
+  seasonal_factor: { type: Number, required: true },
+  seasonal_prediction: { type: Number, required: true },
+  weights: { type: [Number], required: true },
+  year: { type: Number, required: true },
 });
 
 const YieldPredictionSchema = new Schema<IYieldPrediction>({
   year: { type: Number, required: true },
-  monthly_data: { type: [MonthlyDataSchema], required: true },
-  predicted_yield: { type: Number, required: true },
+  average_prediction: { type: Number, required: true },
+  monthly_predictions: { type: [MonthlyPredictionSchema], required: true },
+  status: { type: String, required: true },
 });
 
 const YieldPrediction = model<IYieldPrediction>('YieldPrediction', YieldPredictionSchema);
