@@ -1,4 +1,4 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model, Document, Types } from 'mongoose';
 
 interface IInputData {
   humidity: number;
@@ -30,6 +30,8 @@ interface IYieldPrediction extends Document {
   average_prediction: number;
   monthly_predictions: IMonthlyPrediction[];
   status: string;
+  user: Types.ObjectId;
+  location: Types.ObjectId;
 }
 
 const InputDataSchema = new Schema<IInputData>({
@@ -62,7 +64,9 @@ const YieldPredictionSchema = new Schema<IYieldPrediction>({
   average_prediction: { type: Number, required: true },
   monthly_predictions: { type: [MonthlyPredictionSchema], required: true },
   status: { type: String, required: true },
-});
+  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  location: { type: Schema.Types.ObjectId, ref: 'Location' },
+}, { timestamps: true });
 
 const YieldPrediction = model<IYieldPrediction>('YieldPrediction', YieldPredictionSchema);
 
