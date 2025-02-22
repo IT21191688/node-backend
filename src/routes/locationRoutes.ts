@@ -24,7 +24,6 @@ router.put("/:id", validateLocation, locationController.updateLocation);
 
 router.delete("/:id", locationController.deleteLocation);
 
-// In locationRoutes.ts
 router.put(
   "/:id/assign-device",
   authenticateJWT,
@@ -35,6 +34,11 @@ router.put(
   "/:id/remove-device",
   authenticateJWT,
   locationController.removeDeviceFromLocation
+);
+
+router.get(
+  '/by-device/:deviceId',
+  locationController.getLocationByDeviceId
 );
 
 export default router;

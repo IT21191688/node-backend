@@ -98,4 +98,24 @@ export class LocationController {
       });
     }
   );
+
+  // In LocationController.ts
+getLocationByDeviceId = asyncHandler(async (req: Request, res: Response) => {
+  try {
+    const location = await this.locationService.getLocationByDeviceId(
+      req.params.deviceId
+    );
+    
+    return res.status(200).json({
+      status: 'success',
+      data: { location }  // This will be null if no location found
+    });
+  } catch (error) {
+    console.error('Error finding location by device ID:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Error finding location for device'
+    });
+  }
+});
 }
