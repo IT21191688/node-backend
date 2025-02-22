@@ -38,12 +38,10 @@ router.get(
   wateringController.getLocationSchedules
 );
 
-// Schedule updates
 router.put("/schedule/:id/status", wateringController.updateScheduleStatus);
 
-// Schedule deletion
 router.delete("/schedule/:id", wateringController.deleteSchedule);
-
+//
 router.get("/schedule/:id", wateringController.getScheduleById);
 
 export default router;
