@@ -32,7 +32,7 @@ router.get(
 
 router.put(
     '/:id',
-    validateDevice,
+    // validateDevice,
     deviceController.updateDevice
 );
 

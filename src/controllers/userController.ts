@@ -9,9 +9,6 @@ export default class UserController {
         this.userService = new UserService();
     }
 
-    /**
-     * Get all users
-     */
     getUsers = asyncHandler(async (req: Request, res: Response) => {
         const users = await this.userService.getAllUsers();
         res.status(200).json({
@@ -20,9 +17,6 @@ export default class UserController {
         });
     });
 
-    /**
-     * Get user by ID
-     */
     getUserById = asyncHandler(async (req: Request, res: Response) => {
         const user = await this.userService.getUserById(req.params.id);
         res.status(200).json({
@@ -31,9 +25,6 @@ export default class UserController {
         });
     });
 
-    /**
-     * Create new user
-     */
     createUser = asyncHandler(async (req: Request, res: Response) => {
         const user = await this.userService.createUser(req.body);
         res.status(201).json({
@@ -42,9 +33,6 @@ export default class UserController {
         });
     });
 
-    /**
-     * Update user
-     */
     updateUser = asyncHandler(async (req: Request, res: Response) => {
         const user = await this.userService.updateUser(req.params.id, req.body);
         res.status(200).json({
@@ -53,9 +41,6 @@ export default class UserController {
         });
     });
 
-    /**
-     * Delete user
-     */
     deleteUser = asyncHandler(async (req: Request, res: Response) => {
         await this.userService.deleteUser(req.params.id);
         res.status(204).json({

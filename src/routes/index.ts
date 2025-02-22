@@ -10,7 +10,6 @@ import { rateLimiters } from '../middleware/rateLimiter';
 
 const router = Router();
 
-// Health check route
 router.get('/health', (_req, res) => {
     res.status(200).json({
         status: 'success',
@@ -20,10 +19,8 @@ router.get('/health', (_req, res) => {
     });
 });
 
-// Apply rate limiter to all routes
 router.use(rateLimiters.public);
 
-// Mount routes - removing the /api prefix as it's added in app.ts
 router.use('/v1/auth', authRoutes);
 router.use('/v1/users', userRoutes);
 router.use('/v1/watering', waterRoutes);

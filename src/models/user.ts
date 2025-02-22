@@ -57,7 +57,6 @@ const userSchema = new Schema({
 
 // Hash password before saving
 userSchema.pre<IUser>('save', async function(next) {
-    // Only hash the password if it has been modified (or is new)
     if (!this.isModified('password')) return next();
     
     try {
@@ -70,7 +69,6 @@ userSchema.pre<IUser>('save', async function(next) {
     }
 });
 
-// Compare password method
 userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
     try {
         const user = await this.model('User').findById(this._id).select('+password');
@@ -82,7 +80,6 @@ userSchema.methods.comparePassword = async function(candidatePassword: string): 
     }
 };
 
-// Ensure password field is never sent to client
 userSchema.set('toJSON', {
     transform: function(_doc, ret) {
         delete ret.password;

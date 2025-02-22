@@ -94,32 +94,32 @@ export class DeviceService {
     }
   }
 
-  async updateDevice(
-    deviceId: string,
-    userId: string,
-    data: Partial<IDevice>
-  ): Promise<IDevice> {
-    try {
-      const device = await Device.findOneAndUpdate(
-        {
-          deviceId: deviceId,
-          userId: new Types.ObjectId(userId),
-          isActive: true,
-        },
-        data,
-        { new: true, runValidators: true }
-      );
+  // async updateDevice(
+  //   deviceId: string,
+  //   userId: string,
+  //   data: Partial<IDevice>
+  // ): Promise<IDevice> {
+  //   try {
+  //     const device = await Device.findOneAndUpdate(
+  //       {
+  //         deviceId: deviceId,
+  //         userId: new Types.ObjectId(userId),
+  //         isActive: true,
+  //       },
+  //       data,
+  //       { new: true, runValidators: true }
+  //     );
 
-      if (!device) {
-        throw new AppError(404, "Device not found");
-      }
+  //     if (!device) {
+  //       throw new AppError(404, "Device not found");
+  //     }
 
-      return device;
-    } catch (error) {
-      if (error instanceof AppError) throw error;
-      throw new AppError(400, "Error updating device");
-    }
-  }
+  //     return device;
+  //   } catch (error) {
+  //     if (error instanceof AppError) throw error;
+  //     throw new AppError(400, "Error updating device");
+  //   }
+  // }
 
   async deleteDevice(deviceId: string, userId: string): Promise<void> {
     try {
@@ -179,4 +179,44 @@ export class DeviceService {
       throw new AppError(400, "Error updating device reading");
     }
   }
+
+  async updateDevice(
+    deviceId: string, 
+    userId: string, 
+    data: Partial<IDevice>
+): Promise<IDevice> {
+    try {
+        // First find the device
+        const device = await Device.findOne({
+            deviceId: deviceId,
+            userId: new Types.ObjectId(userId),
+            isActive: true
+        });
+
+        if (!device) {
+            throw new AppError(404, "Device not found");
+        }
+
+        // Check if status change is requested and if device is assigned to a location
+        if ((data.status === 'inactive' || data.status === 'maintenance') && device.locationId) {
+            throw new AppError(400, "Cannot change device status to inactive or maintenance while assigned to a location");
+        }
+
+        // If validation passes, proceed with update
+        const updatedDevice = await Device.findOneAndUpdate(
+            {
+                deviceId: deviceId,
+                userId: new Types.ObjectId(userId),
+                isActive: true
+            },
+            data,
+            { new: true, runValidators: true }
+        );
+
+        return updatedDevice as IDevice;
+    } catch (error) {
+        if (error instanceof AppError) throw error;
+        throw new AppError(400, "Error updating device");
+    }
+}
 }
