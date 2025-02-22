@@ -1,8 +1,8 @@
-import { Router } from 'express';
-import { LocationController } from '../controllers/locationController';
-import { authenticateJWT } from '../middleware/auth';
-import { validateLocation } from '../middleware/locationDeviceValidation';
-import { rateLimiters } from '../middleware/rateLimiter';
+import { Router } from "express";
+import { LocationController } from "../controllers/locationController";
+import { authenticateJWT } from "../middleware/auth";
+import { validateLocation } from "../middleware/locationDeviceValidation";
+import { rateLimiters } from "../middleware/rateLimiter";
 
 const router = Router();
 const locationController = new LocationController();
@@ -14,31 +14,27 @@ router.use(authenticateJWT);
 router.use(rateLimiters.public);
 
 // Location CRUD operations
-router.post(
-    '/',
-    validateLocation,
-    locationController.createLocation
-);
+router.post("/", validateLocation, locationController.createLocation);
 
-router.get(
-    '/',
-    locationController.getLocations
-);
+router.get("/", locationController.getLocations);
 
-router.get(
-    '/:id',
-    locationController.getLocationById
+router.get("/:id", locationController.getLocationById);
+
+router.put("/:id", validateLocation, locationController.updateLocation);
+
+router.delete("/:id", locationController.deleteLocation);
+
+// In locationRoutes.ts
+router.put(
+  "/:id/assign-device",
+  authenticateJWT,
+  locationController.assignDeviceToLocation
 );
 
 router.put(
-    '/:id',
-    validateLocation,
-    locationController.updateLocation
-);
-
-router.delete(
-    '/:id',
-    locationController.deleteLocation
+  "/:id/remove-device",
+  authenticateJWT,
+  locationController.removeDeviceFromLocation
 );
 
 export default router;

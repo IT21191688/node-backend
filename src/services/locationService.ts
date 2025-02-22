@@ -185,10 +185,37 @@ export class LocationService {
     }
   }
 
+  // async updateLocation(
+  //   locationId: string,
+  //   userId: string,
+  //   data: Partial<ILocation>
+  // ): Promise<ILocation> {
+  //   try {
+  //     const location = await Location.findOneAndUpdate(
+  //       {
+  //         _id: locationId,
+  //         userId: new Types.ObjectId(userId),
+  //         isActive: true,
+  //       },
+  //       data,
+  //       { new: true, runValidators: true }
+  //     ).populate("deviceId");
+
+  //     if (!location) {
+  //       throw new AppError(404, "Location not found");
+  //     }
+
+  //     return location;
+  //   } catch (error) {
+  //     if (error instanceof AppError) throw error;
+  //     throw new AppError(400, "Error updating location");
+  //   }
+  // }
+
   async updateLocation(
     locationId: string,
     userId: string,
-    data: Partial<ILocation>
+    data: Partial<ILocation> | Record<string, any> // Allow for MongoDB operators
   ): Promise<ILocation> {
     try {
       const location = await Location.findOneAndUpdate(
@@ -200,11 +227,11 @@ export class LocationService {
         data,
         { new: true, runValidators: true }
       ).populate("deviceId");
-
+  
       if (!location) {
         throw new AppError(404, "Location not found");
       }
-
+  
       return location;
     } catch (error) {
       if (error instanceof AppError) throw error;
@@ -238,6 +265,102 @@ export class LocationService {
     } catch (error) {
       if (error instanceof AppError) throw error;
       throw new AppError(500, "Error deleting location");
+    }
+  }
+
+  async assignDeviceToLocation(
+    locationId: string,
+    userId: string,
+    deviceId: string
+  ): Promise<ILocation> {
+    try {
+      // Check if device exists and is available
+      const device = await Device.findOne({
+        deviceId: deviceId,
+        userId: new Types.ObjectId(userId),
+        isActive: true
+      });
+  
+      if (!device) {
+        throw new AppError(404, "Device not found");
+      }
+  
+      // Check if device is already assigned to another location
+      const isDeviceAssigned = await Location.findOne({
+        deviceId: deviceId,
+        _id: { $ne: locationId },
+        isActive: true
+      });
+  
+      if (isDeviceAssigned) {
+        throw new AppError(400, "Device is already assigned to another location");
+      }
+  
+      // Update location with the deviceId
+      const location = await Location.findOneAndUpdate(
+        {
+          _id: locationId,
+          userId: new Types.ObjectId(userId),
+          isActive: true
+        },
+        { deviceId: deviceId },
+        { new: true }
+      );
+  
+      if (!location) {
+        throw new AppError(404, "Location not found");
+      }
+  
+      // Update device with locationId
+      await Device.findOneAndUpdate(
+        { deviceId: deviceId },
+        { locationId: location._id }
+      );
+  
+      return location;
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      throw new AppError(400, "Error assigning device to location");
+    }
+  }
+  
+  async removeDeviceFromLocation(
+    locationId: string,
+    userId: string
+  ): Promise<any> {
+    try {
+      // Find the location to get the deviceId
+      const location = await Location.findOne({
+        _id: locationId,
+        userId: new Types.ObjectId(userId),
+        isActive: true
+      });
+  
+      if (!location) {
+        throw new AppError(404, "Location not found");
+      }
+  
+      const deviceId = location.deviceId;
+  
+      // Update location to remove deviceId
+      const updatedLocation = await Location.findByIdAndUpdate(
+        locationId,
+        { $unset: { deviceId: "" } },
+        { new: true }
+      );
+  
+      // If there was a device, update it too
+      if (deviceId) {
+        await Device.findOneAndUpdate(
+          { deviceId: deviceId },
+          { $unset: { locationId: "" } }
+        );
+      }
+  
+      return updatedLocation;
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      throw new AppError(400, "Error removing device from location");
     }
   }
 }
