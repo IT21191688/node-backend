@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import YieldPredictionService from '../services/YieldPredictionService';
 import { log } from 'console';
+import ActualYieldService from '../services/ActualYieldService';
 
 class YieldPredictionController {
   public async createYieldPrediction(req: Request, res: Response): Promise<void> {
@@ -109,6 +110,51 @@ class YieldPredictionController {
     }
   }
 
+  public async comparePredictionWithActual(req: Request, res: Response): Promise<void> {
+    try {
+      const { predictionId } = req.params;
+      const userId = req.user._id;
+      const prediction = await YieldPredictionService.getYieldPredictionById(predictionId);
+      if (!prediction) {
+        res.status(404).json({ error: 'Yield prediction not found' });
+        return;
+      }
+
+      const locationId = prediction.location;
+      const lastYear = prediction.year - 1;
+      const actualYields = await ActualYieldService.getActualYieldsByYearAndLocation(userId, lastYear, locationId);
+
+      const comparison = prediction.monthly_predictions.map((pred: any) => {
+        const actualYield = actualYields.find((ay: { month: number }) => ay.month === pred.month);
+        return {
+          month: pred.month,
+          month_name: pred.month_name,
+          predicted_yield: pred.ensemble_prediction,
+          actual_yield: actualYield ? actualYield.actual_yield : null,
+          difference: actualYield ? pred.ensemble_prediction - actualYield.actual_yield : null,
+          year: pred.year,
+          location: prediction.location,
+          user: prediction.user
+        };
+      });
+
+      const response = {
+        predictionId: prediction._id,
+        year: prediction.year,
+        location: prediction.location,
+        user: prediction.user,
+        comparison
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'An unknown error occurred' });
+      }
+    }
+  }
 }
 
 export default new YieldPredictionController();

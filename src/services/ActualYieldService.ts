@@ -22,6 +22,10 @@ class ActualYieldService {
   public async deleteActualYield(id: string): Promise<any> {
     return ActualYield.deleteOne({ _id: id });
   }
+
+  public async getActualYieldsByYearAndLocation(userId: string, year: number, locationId: string): Promise<any> {
+    return ActualYield.find({ user: userId, year, location: locationId });
+  }
 }
 
 export default new ActualYieldService();

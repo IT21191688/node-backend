@@ -5,6 +5,7 @@ import waterRoutes from './wateringRoutes';
 import locationRoutes from './locationRoutes';
 import deviceRoutes from './deviceRoutes';
 import yieldPredictionRoutes from './yieldPredictionRoutes';
+import actualYieldRoutes from './actualYieldRoutes';
 import { rateLimiters } from '../middleware/rateLimiter';
 
 const router = Router();
@@ -29,5 +30,6 @@ router.use('/v1/watering', waterRoutes);
 router.use('/v1/locations', locationRoutes);
 router.use('/v1/devices', deviceRoutes);
 router.use('/v1/yield', yieldPredictionRoutes);
+router.use('/v1/actual-yield', actualYieldRoutes);
 
 export default router;

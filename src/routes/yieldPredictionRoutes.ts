@@ -18,4 +18,7 @@ router.get('/user/yield-predictions', YieldPredictionController.getYieldPredicti
 router.get('/user/latest-yield-prediction', YieldPredictionController.getLatestYieldPredictionByUser);
 router.delete('/yield-prediction/:id', YieldPredictionController.deleteYieldPrediction);
 
+router.get('/compare-prediction/:predictionId', YieldPredictionController.comparePredictionWithActual);
+
+
 export default router;
