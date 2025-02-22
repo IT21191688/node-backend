@@ -10,13 +10,8 @@ export class AuthController {
         this.authService = new AuthService();
     }
 
-    /**
-     * Register new user
-     */
     register = asyncHandler(async (req: Request, res: Response) => {
         const { user, token, refreshToken } = await this.authService.register(req.body);
-
-        // Set cookies
         this.setTokenCookies(res, token, refreshToken);
 
         res.status(201).json({
@@ -25,9 +20,6 @@ export class AuthController {
         });
     });
 
-    /**
-     * Login user
-     */
     login = asyncHandler(async (req: Request, res: Response) => {
         const { email, password } = req.body;
         const { user, token, refreshToken } = await this.authService.login(email, password);
@@ -41,9 +33,6 @@ export class AuthController {
         });
     });
 
-    /**
-     * Forgot password
-     */
     forgotPassword = asyncHandler(async (req: Request, res: Response) => {
         const resetToken = await this.authService.createPasswordResetToken(req.body.email);
 
@@ -55,9 +44,6 @@ export class AuthController {
         });
     });
 
-    /**
-     * Reset password
-     */
     resetPassword = asyncHandler(async (req: Request, res: Response) => {
         await this.authService.resetPassword(req.params.token, req.body.password);
 
