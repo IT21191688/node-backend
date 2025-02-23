@@ -49,7 +49,7 @@ exports.authorizeRoles = authorizeRoles;
 const generateAuthToken = (userId) => {
     const payload = { id: userId };
     const options = {
-        expiresIn: '900h'
+        expiresIn: '10h'
     };
     return jsonwebtoken_1.default.sign(payload, config_1.config.jwt.secret, options);
 };
