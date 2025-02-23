@@ -17,6 +17,7 @@ router.get('/batches', copraController.getAllBatches);
 router.get('/batch/:batchId', copraController.getBatchHistory);
 router.put('/batch/:batchId/notes', copraController.updateBatchNotes);
 router.delete('/batch/:batchId', copraController.deleteBatchReadings);
+router.delete('/batch/:batchId/:id', copraController.deleteSingleReading);
 
 
 export default router;

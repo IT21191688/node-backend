@@ -80,6 +80,19 @@ export class CopraController {
       next(error);
     }
   }
+
+  //delete single read in each batch
+  async deleteSingleReading(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user.id;
+      const { batchId, id } = req.params;
+  
+      const result = await copraService.deleteSingleReading(userId, batchId, id);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }  
 }
 
 export const copraController = new CopraController();

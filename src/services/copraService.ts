@@ -196,6 +196,35 @@ export class CopraService {
     }
   }
 
+  async deleteSingleReading(
+    userId: string,
+    batchId: string,
+    id: string
+  ): Promise<{
+    status: string;
+    message: string;
+  }> {
+    try {
+      const result = await CopraReading.findOneAndDelete({
+        _id: new Types.ObjectId(id),
+        userId: new Types.ObjectId(userId),
+        batchId: batchId
+      });
+  
+      if (!result) {
+        throw new AppError(404, 'Reading not found');
+      }
+  
+      return {
+        status: 'success',
+        message: 'Reading deleted successfully'
+      };
+    } catch (error: any) {
+      if (error instanceof AppError) throw error;
+      throw new AppError(500, 'Error deleting reading');
+    }
+  }
+  
   
   async getAllBatches(userId: string): Promise<{ batchId: string; readingsCount: number }[]> {
     try {
