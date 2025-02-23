@@ -52,4 +52,61 @@ export class CopraService {
     }
   }
 
+  async createReading(
+    userId: string,
+    data: Partial<ICopraReading> & { coordinates: { latitude: number; longitude: number } }
+  ): Promise<{
+    status: string;
+    message: string;
+    data: ICopraReading;
+  }> {
+    try {
+      const weatherData = await this.getWeatherData(data.coordinates);
+  
+      const predictionResult = await this.predictDryingTime({
+        moistureLevel: data.moistureLevel!,
+        temperature: weatherData.temperature,
+        humidity: weatherData.humidity
+      });
+  
+      const reading = await CopraReading.create({
+        ...data,
+        userId: new Types.ObjectId(userId),
+        dryingTime: predictionResult.dryingTime,
+        weatherConditions: {
+          temperature: weatherData.temperature,
+          humidity: weatherData.humidity
+        }
+      });
+  
+      return {
+        status: 'success',
+        message: 'Copra reading created successfully',
+        data: reading
+      };
+    } catch (error: any) {
+      throw new AppError(400, `Error creating copra reading: ${error.message}`);
+    }
+  }
+
+  private async predictDryingTime(data: DryingPredictionInput): Promise<DryingTimeResponse> {
+    try {
+      const response = await axios.post(
+        `${this.mlServiceUrl}/api/copra/predict-drying-time`,
+        data,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('ML Service Error:', error.response?.data || error.message);
+      throw new AppError(500, 'Error getting drying time prediction from ML service');
+    }
+  }
+
+
 }
