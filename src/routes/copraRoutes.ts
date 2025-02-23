@@ -15,7 +15,7 @@ router.use(rateLimiters.public);
 router.post('/readings', copraController.createReading);
 router.get('/batches', copraController.getAllBatches);
 router.get('/batch/:batchId', copraController.getBatchHistory);
-router.put('/batch/:batchId/notes', copraController.updateBatchNotes);
+router.put('/batch/:batchId/:id', copraController.updateSingleNote);
 router.delete('/batch/:batchId', copraController.deleteBatchReadings);
 router.delete('/batch/:batchId/:id', copraController.deleteSingleReading);
 

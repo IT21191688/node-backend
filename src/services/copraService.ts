@@ -117,57 +117,39 @@ export class CopraService {
     }
   }
 
-  async updateBatchNotes(
+  async updateSingleNote(
     userId: string,
     batchId: string,
-    updates: BatchNoteUpdate[]
+    id: string,
+    note: string
   ): Promise<{
     status: string;
     message: string;
-    data: ICopraReading[];
+    data: ICopraReading | null;
   }> {
     try {
-      const readingIds = updates.map(update => new Types.ObjectId(update.readingId));
-      
-      const existingReadings = await CopraReading.find({
-        _id: { $in: readingIds },
-        userId: new Types.ObjectId(userId),
-        batchId: batchId,
-        deletedAt: null
-      });
-  
-      if (existingReadings.length !== updates.length) {
-        throw new AppError(404, 'Some readings were not found or do not belong to this batch');
-      }
-  
-      const updatePromises = updates.map(update => 
-        CopraReading.findOneAndUpdate(
-          {
-            _id: new Types.ObjectId(update.readingId),
-            userId: new Types.ObjectId(userId),
-            batchId: batchId,
-            deletedAt: null
-          },
-          { $set: { notes: update.note } },
-          { new: true }
-        )
+      const updatedReading = await CopraReading.findOneAndUpdate(
+        {
+          _id: new Types.ObjectId(id),
+          userId: new Types.ObjectId(userId),
+          batchId: batchId
+        },
+        { notes: note },
+        { new: true }
       );
   
-      const updatedReadings = await Promise.all(updatePromises);
-      const validUpdates = updatedReadings.filter(reading => reading !== null);
-  
-      if (validUpdates.length === 0) {
-        throw new AppError(404, 'No readings were updated');
+      if (!updatedReading) {
+        throw new AppError(404, 'Reading not found');
       }
   
       return {
         status: 'success',
-        message: 'Batch notes updated successfully',
-        data: validUpdates
+        message: 'Note updated successfully',
+        data: updatedReading
       };
     } catch (error: any) {
       if (error instanceof AppError) throw error;
-      throw new AppError(400, `Error updating batch notes: ${error.message}`);
+      throw new AppError(500, 'Error updating note');
     }
   }
 
