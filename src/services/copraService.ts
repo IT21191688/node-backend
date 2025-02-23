@@ -89,6 +89,150 @@ export class CopraService {
     }
   }
 
+  
+  async getBatchHistory(userId: string, batchId: string): Promise<{
+    status: string;
+    message: string;
+    data: ICopraReading[];
+  }> {
+    try {
+      const readings = await CopraReading.find({
+        userId: new Types.ObjectId(userId),
+        batchId: batchId,
+        deletedAt: null
+      }).sort({ createdAt: -1 });
+  
+      if (!readings.length) {
+        throw new AppError(404, 'No readings found for this batch');
+      }
+  
+      return {
+        status: 'success',
+        message: 'Batch history retrieved successfully',
+        data: readings
+      };
+    } catch (error: any) {
+      if (error instanceof AppError) throw error;
+      throw new AppError(500, 'Error fetching batch history');
+    }
+  }
+
+  async updateBatchNotes(
+    userId: string,
+    batchId: string,
+    updates: BatchNoteUpdate[]
+  ): Promise<{
+    status: string;
+    message: string;
+    data: ICopraReading[];
+  }> {
+    try {
+      const readingIds = updates.map(update => new Types.ObjectId(update.readingId));
+      
+      const existingReadings = await CopraReading.find({
+        _id: { $in: readingIds },
+        userId: new Types.ObjectId(userId),
+        batchId: batchId,
+        deletedAt: null
+      });
+  
+      if (existingReadings.length !== updates.length) {
+        throw new AppError(404, 'Some readings were not found or do not belong to this batch');
+      }
+  
+      const updatePromises = updates.map(update => 
+        CopraReading.findOneAndUpdate(
+          {
+            _id: new Types.ObjectId(update.readingId),
+            userId: new Types.ObjectId(userId),
+            batchId: batchId,
+            deletedAt: null
+          },
+          { $set: { notes: update.note } },
+          { new: true }
+        )
+      );
+  
+      const updatedReadings = await Promise.all(updatePromises);
+      const validUpdates = updatedReadings.filter(reading => reading !== null);
+  
+      if (validUpdates.length === 0) {
+        throw new AppError(404, 'No readings were updated');
+      }
+  
+      return {
+        status: 'success',
+        message: 'Batch notes updated successfully',
+        data: validUpdates
+      };
+    } catch (error: any) {
+      if (error instanceof AppError) throw error;
+      throw new AppError(400, `Error updating batch notes: ${error.message}`);
+    }
+  }
+
+  //Delete a Batch of Readings
+  async deleteBatchReadings(userId: string, batchId: string): Promise<{
+    status: string;
+    message: string;
+  }> {
+    try {
+      const result = await CopraReading.deleteMany({
+        userId: new Types.ObjectId(userId),
+        batchId: batchId
+      });
+  
+      if (!result.deletedCount) {
+        throw new AppError(404, 'No readings found for this batch');
+      }
+  
+      return {
+        status: 'success',
+        message: 'Batch readings deleted successfully'
+      };
+    } catch (error: any) {
+      if (error instanceof AppError) throw error;
+      throw new AppError(500, 'Error deleting batch readings');
+    }
+  }
+
+  
+  async getAllBatches(userId: string): Promise<{ batchId: string; readingsCount: number }[]> {
+    try {
+      const batches = await CopraReading.aggregate([
+        {
+          $match: {
+            userId: new Types.ObjectId(userId),
+            deletedAt: null,
+            batchId: { $exists: true, $ne: null }
+          }
+        },
+        {
+          $group: {
+            _id: "$batchId",
+            readingsCount: { $sum: 1 },
+            lastUpdated: { $max: "$createdAt" }
+          }
+        },
+        {
+          $project: {
+            batchId: "$_id",
+            readingsCount: 1,
+            lastUpdated: 1,
+            _id: 0
+          }
+        },
+        {
+          $sort: { lastUpdated: -1 }
+        }
+      ]);
+  
+      return batches;
+    } catch (error: any) {
+      throw new AppError(500, 'Error fetching batches');
+    }
+  }
+
   private async predictDryingTime(data: DryingPredictionInput): Promise<DryingTimeResponse> {
     try {
       const response = await axios.post(

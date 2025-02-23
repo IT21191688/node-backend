@@ -95,6 +95,65 @@ class FirebaseService {
             throw error;
         }
     }
+    async getCopraMoistureReadings(deviceId) {
+        try {
+            const ref = this.rtdb.ref(`copraDevices/${deviceId}/readings`);
+            const snapshot = await ref.orderByChild('timestamp').limitToLast(1).once('value');
+            if (!snapshot.exists()) {
+                return null;
+            }
+            const data = Object.values(snapshot.val())[0];
+            return {
+                moistureLevel: data.moistureLevel,
+                timestamp: new Date(data.timestamp)
+            };
+        }
+        catch (error) {
+            console.error('Error getting soil moisture readings:', error);
+            throw error;
+        }
+    }
+    subscribeCopraMoistureUpdates(deviceId, callback) {
+        const ref = this.rtdb.ref(`CopraDevices/${deviceId}/readings`);
+        ref.on('child_added', (snapshot) => {
+            callback(snapshot.val());
+        });
+    }
+    async storeCopraReadingHistory(deviceId, reading) {
+        try {
+            await this.db.collection('CopraDeviceReadings')
+                .doc(deviceId)
+                .collection('history')
+                .add({
+                ...reading,
+                timestamp: new Date()
+            });
+        }
+        catch (error) {
+            console.error('Error storing reading history:', error);
+            throw error;
+        }
+    }
+    async getCopraReadingHistory(deviceId, days = 7) {
+        try {
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - days);
+            const snapshot = await this.db.collection('copraDeviceReadings')
+                .doc(deviceId)
+                .collection('history')
+                .where('timestamp', '>=', startDate)
+                .orderBy('timestamp', 'desc')
+                .get();
+            return snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+        }
+        catch (error) {
+            console.error('Error getting reading history:', error);
+            throw error;
+        }
+    }
 }
 exports.firebaseService = FirebaseService.getInstance();
 //# sourceMappingURL=firebase.js.map
