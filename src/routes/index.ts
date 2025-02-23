@@ -6,6 +6,7 @@ import locationRoutes from './locationRoutes';
 import deviceRoutes from './deviceRoutes';
 import yieldPredictionRoutes from './yieldPredictionRoutes';
 import actualYieldRoutes from './actualYieldRoutes';
+import pricePredictionRoutes from './pricePredictionRoutes';
 import { rateLimiters } from '../middleware/rateLimiter';
 
 const router = Router();
@@ -28,5 +29,6 @@ router.use('/v1/locations', locationRoutes);
 router.use('/v1/devices', deviceRoutes);
 router.use('/v1/yield', yieldPredictionRoutes);
 router.use('/v1/actual-yield', actualYieldRoutes);
+router.use('/v1/price', pricePredictionRoutes);
 
 export default router;
