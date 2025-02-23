@@ -126,6 +126,77 @@ class FirebaseService {
             throw error;
         }
     }
+
+    // Get Copra Moisture Readings
+    public async getCopraMoistureReadings(deviceId: string): Promise<{
+        moistureLevel: number;
+        timestamp: Date;
+    } | null> {
+        try {
+            const ref = this.rtdb.ref(`copraDevices/${deviceId}/readings`);
+            const snapshot = await ref.orderByChild('timestamp').limitToLast(1).once('value');
+            
+            if (!snapshot.exists()) {
+                return null;
+            }
+
+            const data = Object.values(snapshot.val())[0] as any;
+            return {
+                moistureLevel: data.moistureLevel,
+                timestamp: new Date(data.timestamp)
+            };
+        } catch (error) {
+            console.error('Error getting soil moisture readings:', error);
+            throw error;
+        }
+    }
+
+    // Subscribe to Copra Moisture Updates
+    public subscribeCopraMoistureUpdates(deviceId: string, callback: (data: any) => void): void {
+        const ref = this.rtdb.ref(`CopraDevices/${deviceId}/readings`);
+        ref.on('child_added', (snapshot: any) => {
+            callback(snapshot.val());
+        });
+    }
+
+    // Store CopraDevice Reading History
+    public async storeCopraReadingHistory(deviceId: string, reading: any): Promise<void> {
+        try {
+            await this.db.collection('CopraDeviceReadings')
+                .doc(deviceId)
+                .collection('history')
+                .add({
+                    ...reading,
+                    timestamp: new Date()
+                });
+        } catch (error) {
+            console.error('Error storing reading history:', error);
+            throw error;
+        }
+    }
+
+    // Get Copra Device Reading History
+    public async getCopraReadingHistory(deviceId: string, days: number = 7): Promise<any[]> {
+        try {
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - days);
+
+            const snapshot = await this.db.collection('copraDeviceReadings')
+                .doc(deviceId)
+                .collection('history')
+                .where('timestamp', '>=', startDate)
+                .orderBy('timestamp', 'desc')
+                .get();
+
+            return snapshot.docs.map((doc: { id: any; data: () => any; }) => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+        } catch (error) {
+            console.error('Error getting reading history:', error);
+            throw error;
+        }
+    }
 }
 
 export const firebaseService = FirebaseService.getInstance();
