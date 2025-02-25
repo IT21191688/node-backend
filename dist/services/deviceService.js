@@ -64,24 +64,6 @@ class DeviceService {
             throw new errorHandler_1.AppError(500, "Error fetching device");
         }
     }
-    async updateDevice(deviceId, userId, data) {
-        try {
-            const device = await device_1.Device.findOneAndUpdate({
-                deviceId: deviceId,
-                userId: new mongoose_1.Types.ObjectId(userId),
-                isActive: true,
-            }, data, { new: true, runValidators: true });
-            if (!device) {
-                throw new errorHandler_1.AppError(404, "Device not found");
-            }
-            return device;
-        }
-        catch (error) {
-            if (error instanceof errorHandler_1.AppError)
-                throw error;
-            throw new errorHandler_1.AppError(400, "Error updating device");
-        }
-    }
     async deleteDevice(deviceId, userId) {
         try {
             const device = await device_1.Device.findOneAndUpdate({
@@ -121,6 +103,32 @@ class DeviceService {
             if (error instanceof errorHandler_1.AppError)
                 throw error;
             throw new errorHandler_1.AppError(400, "Error updating device reading");
+        }
+    }
+    async updateDevice(deviceId, userId, data) {
+        try {
+            const device = await device_1.Device.findOne({
+                deviceId: deviceId,
+                userId: new mongoose_1.Types.ObjectId(userId),
+                isActive: true
+            });
+            if (!device) {
+                throw new errorHandler_1.AppError(404, "Device not found");
+            }
+            if ((data.status === 'inactive' || data.status === 'maintenance') && device.locationId) {
+                throw new errorHandler_1.AppError(400, "Cannot change device status to inactive or maintenance while assigned to a location");
+            }
+            const updatedDevice = await device_1.Device.findOneAndUpdate({
+                deviceId: deviceId,
+                userId: new mongoose_1.Types.ObjectId(userId),
+                isActive: true
+            }, data, { new: true, runValidators: true });
+            return updatedDevice;
+        }
+        catch (error) {
+            if (error instanceof errorHandler_1.AppError)
+                throw error;
+            throw new errorHandler_1.AppError(400, "Error updating device");
         }
     }
 }

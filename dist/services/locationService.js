@@ -141,6 +141,77 @@ class LocationService {
             throw new errorHandler_1.AppError(500, "Error deleting location");
         }
     }
+    async assignDeviceToLocation(locationId, userId, deviceId) {
+        try {
+            const device = await device_1.Device.findOne({
+                deviceId: deviceId,
+                userId: new mongoose_1.Types.ObjectId(userId),
+                isActive: true,
+            });
+            if (!device) {
+                throw new errorHandler_1.AppError(404, "Device not found");
+            }
+            const isDeviceAssigned = await location_1.Location.findOne({
+                deviceId: deviceId,
+                _id: { $ne: locationId },
+                isActive: true,
+            });
+            if (isDeviceAssigned) {
+                throw new errorHandler_1.AppError(400, "Device is already assigned to another location");
+            }
+            const location = await location_1.Location.findOneAndUpdate({
+                _id: locationId,
+                userId: new mongoose_1.Types.ObjectId(userId),
+                isActive: true,
+            }, { deviceId: deviceId }, { new: true });
+            if (!location) {
+                throw new errorHandler_1.AppError(404, "Location not found");
+            }
+            await device_1.Device.findOneAndUpdate({ deviceId: deviceId }, { locationId: location._id });
+            return location;
+        }
+        catch (error) {
+            if (error instanceof errorHandler_1.AppError)
+                throw error;
+            throw new errorHandler_1.AppError(400, "Error assigning device to location");
+        }
+    }
+    async removeDeviceFromLocation(locationId, userId) {
+        try {
+            const location = await location_1.Location.findOne({
+                _id: locationId,
+                userId: new mongoose_1.Types.ObjectId(userId),
+                isActive: true,
+            });
+            if (!location) {
+                throw new errorHandler_1.AppError(404, "Location not found");
+            }
+            const deviceId = location.deviceId;
+            const updatedLocation = await location_1.Location.findByIdAndUpdate(locationId, { $unset: { deviceId: "" } }, { new: true });
+            if (deviceId) {
+                await device_1.Device.findOneAndUpdate({ deviceId: deviceId }, { $unset: { locationId: "" } });
+            }
+            return updatedLocation;
+        }
+        catch (error) {
+            if (error instanceof errorHandler_1.AppError)
+                throw error;
+            throw new errorHandler_1.AppError(400, "Error removing device from location");
+        }
+    }
+    async getLocationByDeviceId(deviceId) {
+        try {
+            const location = await location_1.Location.findOne({
+                deviceId: deviceId,
+                isActive: true,
+            });
+            return location;
+        }
+        catch (error) {
+            console.error("Error finding location by device ID:", error);
+            throw new errorHandler_1.AppError(500, "Error finding location for device");
+        }
+    }
 }
 exports.LocationService = LocationService;
 //# sourceMappingURL=locationService.js.map

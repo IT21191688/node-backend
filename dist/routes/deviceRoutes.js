@@ -12,7 +12,7 @@ router.use(rateLimiter_1.rateLimiters.public);
 router.post('/register', locationDeviceValidation_1.validateDevice, deviceController.registerDevice);
 router.get('/', deviceController.getDevices);
 router.get('/:id', deviceController.getDeviceById);
-router.put('/:id', locationDeviceValidation_1.validateDevice, deviceController.updateDevice);
+router.put('/:id', deviceController.updateDevice);
 router.delete('/:id', deviceController.deleteDevice);
 router.post('/:id/readings', deviceController.updateDeviceReading);
 exports.default = router;
