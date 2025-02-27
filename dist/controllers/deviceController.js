@@ -6,6 +6,7 @@ const errorHandler_1 = require("../middleware/errorHandler");
 class DeviceController {
     constructor() {
         this.registerDevice = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+            console.log(req.body);
             const device = await this.deviceService.registerDevice(req.user.id, req.body);
             res.status(201).json({
                 status: 'success',
