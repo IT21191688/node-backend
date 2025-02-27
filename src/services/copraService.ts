@@ -1,7 +1,7 @@
-import axios from 'axios';
-import { Types } from 'mongoose';
-import { CopraReading, ICopraReading } from '../models/copraReading';
-import { AppError } from '../middleware/errorHandler';
+import axios from "axios";
+import { Types } from "mongoose";
+import { CopraReading, ICopraReading } from "../models/copraReading";
+import { AppError } from "../middleware/errorHandler";
 
 interface WeatherData {
   temperature: number;
@@ -30,8 +30,9 @@ export class CopraService {
   private readonly weatherApiKey: string;
 
   constructor() {
-    this.mlServiceUrl = process.env.ML_SERVICE_URL || 'http://127.0.0.1:5000';
-    this.weatherApiKey = process.env.WEATHER_API_KEY || '5dd16e6569f3cdae6509d32002b9dc67';
+    this.mlServiceUrl = process.env.ML_SERVICE_URL || "http://127.0.0.1:5000";
+    this.weatherApiKey =
+      process.env.WEATHER_API_KEY || "5dd16e6569f3cdae6509d32002b9dc67";
   }
 
   private async getWeatherData(coordinates: {
@@ -45,16 +46,18 @@ export class CopraService {
 
       return {
         temperature: response.data.main.temp,
-        humidity: response.data.main.humidity
+        humidity: response.data.main.humidity,
       };
     } catch (error: any) {
-      throw new AppError(500, 'Error fetching weather data');
+      throw new AppError(500, "Error fetching weather data");
     }
   }
 
   async createReading(
     userId: string,
-    data: Partial<ICopraReading> & { coordinates: { latitude: number; longitude: number } }
+    data: Partial<ICopraReading> & {
+      coordinates: { latitude: number; longitude: number };
+    }
   ): Promise<{
     status: string;
     message: string;
@@ -62,35 +65,37 @@ export class CopraService {
   }> {
     try {
       const weatherData = await this.getWeatherData(data.coordinates);
-  
+
       const predictionResult = await this.predictDryingTime({
         moistureLevel: data.moistureLevel!,
         temperature: weatherData.temperature,
-        humidity: weatherData.humidity
+        humidity: weatherData.humidity,
       });
-  
+
       const reading = await CopraReading.create({
         ...data,
         userId: new Types.ObjectId(userId),
         dryingTime: predictionResult.dryingTime,
         weatherConditions: {
           temperature: weatherData.temperature,
-          humidity: weatherData.humidity
-        }
+          humidity: weatherData.humidity,
+        },
       });
-  
+
       return {
-        status: 'success',
-        message: 'Copra reading created successfully',
-        data: reading
+        status: "success",
+        message: "Copra reading created successfully",
+        data: reading,
       };
     } catch (error: any) {
       throw new AppError(400, `Error creating copra reading: ${error.message}`);
     }
   }
 
-  
-  async getBatchHistory(userId: string, batchId: string): Promise<{
+  async getBatchHistory(
+    userId: string,
+    batchId: string
+  ): Promise<{
     status: string;
     message: string;
     data: ICopraReading[];
@@ -99,21 +104,21 @@ export class CopraService {
       const readings = await CopraReading.find({
         userId: new Types.ObjectId(userId),
         batchId: batchId,
-        deletedAt: null
+        deletedAt: null,
       }).sort({ createdAt: -1 });
-  
+
       if (!readings.length) {
-        throw new AppError(404, 'No readings found for this batch');
+        throw new AppError(404, "No readings found for this batch");
       }
-  
+
       return {
-        status: 'success',
-        message: 'Batch history retrieved successfully',
-        data: readings
+        status: "success",
+        message: "Batch history retrieved successfully",
+        data: readings,
       };
     } catch (error: any) {
       if (error instanceof AppError) throw error;
-      throw new AppError(500, 'Error fetching batch history');
+      throw new AppError(500, "Error fetching batch history");
     }
   }
 
@@ -132,49 +137,52 @@ export class CopraService {
         {
           _id: new Types.ObjectId(id),
           userId: new Types.ObjectId(userId),
-          batchId: batchId
+          batchId: batchId,
         },
         { notes: note },
         { new: true }
       );
-  
+
       if (!updatedReading) {
-        throw new AppError(404, 'Reading not found');
+        throw new AppError(404, "Reading not found");
       }
-  
+
       return {
-        status: 'success',
-        message: 'Note updated successfully',
-        data: updatedReading
+        status: "success",
+        message: "Note updated successfully",
+        data: updatedReading,
       };
     } catch (error: any) {
       if (error instanceof AppError) throw error;
-      throw new AppError(500, 'Error updating note');
+      throw new AppError(500, "Error updating note");
     }
   }
 
   //Delete a Batch of Readings
-  async deleteBatchReadings(userId: string, batchId: string): Promise<{
+  async deleteBatchReadings(
+    userId: string,
+    batchId: string
+  ): Promise<{
     status: string;
     message: string;
   }> {
     try {
       const result = await CopraReading.deleteMany({
         userId: new Types.ObjectId(userId),
-        batchId: batchId
+        batchId: batchId,
       });
-  
+
       if (!result.deletedCount) {
-        throw new AppError(404, 'No readings found for this batch');
+        throw new AppError(404, "No readings found for this batch");
       }
-  
+
       return {
-        status: 'success',
-        message: 'Batch readings deleted successfully'
+        status: "success",
+        message: "Batch readings deleted successfully",
       };
     } catch (error: any) {
       if (error instanceof AppError) throw error;
-      throw new AppError(500, 'Error deleting batch readings');
+      throw new AppError(500, "Error deleting batch readings");
     }
   }
 
@@ -190,78 +198,88 @@ export class CopraService {
       const result = await CopraReading.findOneAndDelete({
         _id: new Types.ObjectId(id),
         userId: new Types.ObjectId(userId),
-        batchId: batchId
+        batchId: batchId,
       });
-  
+
       if (!result) {
-        throw new AppError(404, 'Reading not found');
+        throw new AppError(404, "Reading not found");
       }
-  
+
       return {
-        status: 'success',
-        message: 'Reading deleted successfully'
+        status: "success",
+        message: "Reading deleted successfully",
       };
     } catch (error: any) {
       if (error instanceof AppError) throw error;
-      throw new AppError(500, 'Error deleting reading');
+      throw new AppError(500, "Error deleting reading");
     }
   }
-  
-  
-  async getAllBatches(userId: string): Promise<{ batchId: string; readingsCount: number }[]> {
+
+  async getAllBatches(
+    userId: string
+  ): Promise<{ batchId: string; readingsCount: number }[]> {
     try {
       const batches = await CopraReading.aggregate([
         {
           $match: {
             userId: new Types.ObjectId(userId),
             deletedAt: null,
-            batchId: { $exists: true, $ne: null }
-          }
+            batchId: { $exists: true, $ne: null },
+          },
         },
         {
           $group: {
             _id: "$batchId",
             readingsCount: { $sum: 1 },
-            lastUpdated: { $max: "$createdAt" }
-          }
+            lastUpdated: { $max: "$createdAt" },
+          },
         },
         {
           $project: {
             batchId: "$_id",
             readingsCount: 1,
             lastUpdated: 1,
-            _id: 0
-          }
+            _id: 0,
+          },
         },
         {
-          $sort: { lastUpdated: -1 }
-        }
+          $sort: { lastUpdated: -1 },
+        },
       ]);
-  
+
       return batches;
     } catch (error: any) {
-      throw new AppError(500, 'Error fetching batches');
+      throw new AppError(500, "Error fetching batches");
     }
   }
 
-  private async predictDryingTime(data: DryingPredictionInput): Promise<DryingTimeResponse> {
+  async getMoistureLevel(deviceId: any) {
+    const moisturelevel = 20;
+
+    return moisturelevel;
+  }
+
+  private async predictDryingTime(
+    data: DryingPredictionInput
+  ): Promise<DryingTimeResponse> {
     try {
       const response = await axios.post(
         `${this.mlServiceUrl}/api/copra/predict-drying-time`,
         data,
         {
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
 
       return response.data;
     } catch (error: any) {
-      console.error('ML Service Error:', error.response?.data || error.message);
-      throw new AppError(500, 'Error getting drying time prediction from ML service');
+      console.error("ML Service Error:", error.response?.data || error.message);
+      throw new AppError(
+        500,
+        "Error getting drying time prediction from ML service"
+      );
     }
   }
-
-
 }

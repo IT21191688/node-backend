@@ -40,18 +40,15 @@ class CopraController {
             next(error);
         }
     }
-    async updateBatchNotes(req, res, next) {
+    async updateSingleNote(req, res, next) {
         try {
             const userId = req.user.id;
-            const { batchId } = req.params;
-            const updates = req.body.updates;
-            if (!Array.isArray(updates)) {
-                throw new errorHandler_1.AppError(400, 'Updates must be an array');
+            const { batchId, id } = req.params;
+            const { note } = req.body;
+            if (!note) {
+                throw new errorHandler_1.AppError(400, 'Note is required');
             }
-            if (!updates.every(update => update.readingId && update.note)) {
-                throw new errorHandler_1.AppError(400, 'Each update must contain readingId and note');
-            }
-            const result = await copraService.updateBatchNotes(userId, batchId, updates);
+            const result = await copraService.updateSingleNote(userId, batchId, id, note);
             res.status(200).json(result);
         }
         catch (error) {
@@ -63,6 +60,17 @@ class CopraController {
             const userId = req.user.id;
             const { batchId } = req.params;
             const result = await copraService.deleteBatchReadings(userId, batchId);
+            res.status(200).json(result);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async deleteSingleReading(req, res, next) {
+        try {
+            const userId = req.user.id;
+            const { batchId, id } = req.params;
+            const result = await copraService.deleteSingleReading(userId, batchId, id);
             res.status(200).json(result);
         }
         catch (error) {
