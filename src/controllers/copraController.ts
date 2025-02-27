@@ -1,11 +1,10 @@
-import { Request, Response, NextFunction } from 'express';
-import { CopraService } from '../services/copraService';
-import { AppError } from '../middleware/errorHandler';
+import { Request, Response, NextFunction } from "express";
+import { CopraService } from "../services/copraService";
+import { AppError } from "../middleware/errorHandler";
 
 const copraService = new CopraService();
 
 export class CopraController {
-  
   //batch readings
 
   //create batch
@@ -25,15 +24,15 @@ export class CopraController {
       const userId = req.user.id;
       const batches = await copraService.getAllBatches(userId);
       res.status(200).json({
-        status: 'success',
-        message: 'Batches retrieved successfully',
-        data: batches
+        status: "success",
+        message: "Batches retrieved successfully",
+        data: batches,
       });
     } catch (error) {
       next(error);
     }
   }
-  
+
   //get relevent batch history
   async getBatchHistory(req: Request, res: Response, next: NextFunction) {
     try {
@@ -52,12 +51,17 @@ export class CopraController {
       const userId = req.user.id;
       const { batchId, id } = req.params;
       const { note } = req.body;
-  
+
       if (!note) {
-        throw new AppError(400, 'Note is required');
+        throw new AppError(400, "Note is required");
       }
-  
-      const result = await copraService.updateSingleNote(userId, batchId, id, note);
+
+      const result = await copraService.updateSingleNote(
+        userId,
+        batchId,
+        id,
+        note
+      );
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -82,13 +86,28 @@ export class CopraController {
     try {
       const userId = req.user.id;
       const { batchId, id } = req.params;
-  
-      const result = await copraService.deleteSingleReading(userId, batchId, id);
+
+      const result = await copraService.deleteSingleReading(
+        userId,
+        batchId,
+        id
+      );
       res.status(200).json(result);
     } catch (error) {
       next(error);
     }
-  }  
+  }
+
+  async getMoistureLevel(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { deviceId } = req.params;
+
+      const result = await copraService.getMoistureLevel(deviceId);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const copraController = new CopraController();

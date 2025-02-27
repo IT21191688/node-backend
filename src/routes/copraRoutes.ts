@@ -18,6 +18,7 @@ router.get('/batch/:batchId', copraController.getBatchHistory);
 router.put('/batch/:batchId/:id', copraController.updateSingleNote);
 router.delete('/batch/:batchId', copraController.deleteBatchReadings);
 router.delete('/batch/:batchId/:id', copraController.deleteSingleReading);
+router.post('/getMoisturelevel/:deviceId', copraController.getMoistureLevel);
 
 
 export default router;
