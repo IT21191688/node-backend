@@ -78,7 +78,7 @@ export const authorizeRoles = (...roles: string[]) => {
 export const generateAuthToken = (userId: string): string => {
     const payload: JWTPayload = { id: userId };
     const options: SignOptions = {
-        expiresIn: '10h'
+        expiresIn: '1m'
     };
 
     return jwt.sign(
