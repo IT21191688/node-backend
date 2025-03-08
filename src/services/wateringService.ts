@@ -7,6 +7,7 @@ import {
 import { Location } from "../models/location";
 import { Device } from "../models/device";
 import { AppError } from "../middleware/errorHandler";
+import { firebaseService } from "../config/firebase";
 
 interface WeatherData {
   temperature: number;
@@ -22,6 +23,12 @@ interface MLPredictionResponse {
     moderateWater: number;
     lowWater: number;
   };
+}
+
+interface SoilData {
+  moisture10cm: number;
+  moisture20cm: number;
+  moisture30cm: number;
 }
 
 export class WateringService {
@@ -90,6 +97,32 @@ export class WateringService {
     return ranges[prediction as keyof typeof ranges];
   }
 
+  private async getSoilMoistureData(
+    deviceId: string
+  ): Promise<SoilData | null> {
+    try {
+      // Get the latest reading from Firebase
+      const readings = await firebaseService.getSoilMoistureReadings(deviceId);
+
+      if (!readings) {
+        console.log(`No readings found for device ${deviceId}`);
+        return null;
+      }
+
+      return {
+        moisture10cm: readings.moisture10cm,
+        moisture20cm: readings.moisture20cm,
+        moisture30cm: readings.moisture30cm,
+      };
+    } catch (error) {
+      console.error(
+        `Error getting soil moisture data for device ${deviceId}:`,
+        error
+      );
+      return null;
+    }
+  }
+
   async createSchedule(
     userId: string,
     locationId: string,
@@ -109,22 +142,34 @@ export class WateringService {
       const weatherData = await this.getWeatherData(location.coordinates);
 
       let soilData = data.soilConditions;
-      // if (location.deviceId) {
-      //     const device = await Device.findOne({ deviceId: location.deviceId });
-      //     if (device?.lastReading) {
-      //         soilData = {
-      //             moisture10cm: device.lastReading.moisture10cm,
-      //             moisture20cm: device.lastReading.moisture20cm,
-      //             moisture30cm: device.lastReading.moisture30cm
-      //         };
-      //     }
-      // }
 
-      soilData = {
-        moisture10cm: 45.5, // Hardcoded test value
-        moisture20cm: 50.2, // Hardcoded test value
-        moisture30cm: 55.8, // Hardcoded test value
+      const generateRandomSoilData = () => {
+        return {
+          moisture10cm: Math.round((15 + Math.random() * 45) * 10) / 10, // Range ~15-60%
+          moisture20cm: Math.round((20 + Math.random() * 40) * 10) / 10, // Range ~20-60% 
+          moisture30cm: Math.round((25 + Math.random() * 45) * 10) / 10, // Range ~25-70%
+        };
       };
+      
+      // Use the generated random values instead of hardcoded ones
+      soilData = generateRandomSoilData();
+
+      if (location.deviceId) {
+        const firebaseSoilData = await this.getSoilMoistureData(
+          location.deviceId
+        );
+        if (firebaseSoilData) {
+          soilData = firebaseSoilData;
+          console.log(
+            `Using real soil data for device ${location.deviceId}:`,
+            soilData
+          );
+        } else {
+          console.log(
+            `Using default soil data for device ${location.deviceId}`
+          );
+        }
+      }
 
       // Get prediction from ML service
       const mlPrediction = await this.getPrediction({

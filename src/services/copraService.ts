@@ -2,6 +2,7 @@ import axios from "axios";
 import { Types } from "mongoose";
 import { CopraReading, ICopraReading } from "../models/copraReading";
 import { AppError } from "../middleware/errorHandler";
+import { firebaseService } from "../config/firebase";
 
 interface WeatherData {
   temperature: number;
@@ -253,10 +254,30 @@ export class CopraService {
     }
   }
 
-  async getMoistureLevel(deviceId: any) {
-    const moisturelevel = 20;
+  // async getMoistureLevel(deviceId: any) {
+  //   const moisturelevel = 20;
 
-    return moisturelevel;
+  //   return moisturelevel;
+  // }
+
+  async getMoistureLevel(deviceId: any) {
+    try {
+      // Get moisture data from Firebase
+      const foodMoistureData = await firebaseService.getFoodMoistureReadings(deviceId);
+      
+      if (!foodMoistureData) {
+        console.log(`No moisture data found for food device ${deviceId}, using default value`);
+        return 20; // Default fallback value if no data is found
+      }
+
+      console.log(foodMoistureData);
+      
+      // Return the actual moisture level from Firebase
+      return foodMoistureData.moistureLevel;
+    } catch (error) {
+      console.error(`Error getting moisture level for device ${deviceId}:`, error);
+      return 20; // Default fallback value in case of error
+    }
   }
 
   private async predictDryingTime(
