@@ -2,10 +2,12 @@ import ActualYield from '../models/ActualYield';
 
 class ActualYieldService {
   public async createActualYield(data: any, userId: string, locationId: string): Promise<any> {
+    const yieldPredictionId = data.yieldPredictionId; // Assuming yieldPredictionId comes from data
     const actualYield = new ActualYield({
       ...data,
       user: userId,
       location: locationId,
+      yieldPrediction: yieldPredictionId
     });
     await actualYield.save();
     return actualYield;
