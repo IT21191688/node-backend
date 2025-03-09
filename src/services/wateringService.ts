@@ -146,11 +146,11 @@ export class WateringService {
       const generateRandomSoilData = () => {
         return {
           moisture10cm: Math.round((15 + Math.random() * 45) * 10) / 10, // Range ~15-60%
-          moisture20cm: Math.round((20 + Math.random() * 40) * 10) / 10, // Range ~20-60% 
+          moisture20cm: Math.round((20 + Math.random() * 40) * 10) / 10, // Range ~20-60%
           moisture30cm: Math.round((25 + Math.random() * 45) * 10) / 10, // Range ~25-70%
         };
       };
-      
+
       // Use the generated random values instead of hardcoded ones
       soilData = generateRandomSoilData();
 
@@ -158,6 +158,7 @@ export class WateringService {
         const firebaseSoilData = await this.getSoilMoistureData(
           location.deviceId
         );
+
         if (firebaseSoilData) {
           soilData = firebaseSoilData;
           console.log(
@@ -304,12 +305,34 @@ export class WateringService {
         try {
           const weatherData = await this.getWeatherData(location.coordinates);
 
-          // Hardcoded soil moisture data
-          const soilData = {
-            moisture10cm: 45.5,
-            moisture20cm: 50.2,
-            moisture30cm: 55.8,
+          const generateRandomSoilData = () => {
+            return {
+              moisture10cm: Math.round((15 + Math.random() * 45) * 10) / 10, // Range ~15-60%
+              moisture20cm: Math.round((20 + Math.random() * 40) * 10) / 10, // Range ~20-60%
+              moisture30cm: Math.round((25 + Math.random() * 45) * 10) / 10, // Range ~25-70%
+            };
           };
+
+          // Use the generated random values instead of hardcoded ones
+          let soilData = generateRandomSoilData();
+
+          if (location.deviceId) {
+            const firebaseSoilData = await this.getSoilMoistureData(
+              location.deviceId
+            );
+
+            if (firebaseSoilData) {
+              soilData = firebaseSoilData;
+              console.log(
+                `Using real soil data for device ${location.deviceId}:`,
+                soilData
+              );
+            } else {
+              console.log(
+                `Using default soil data for device ${location.deviceId}`
+              );
+            }
+          }
 
           // Get prediction from ML service
           const mlPrediction = await this.getPrediction({
