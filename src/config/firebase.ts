@@ -75,6 +75,7 @@ class FirebaseService {
     moisture10cm: number;
     moisture20cm: number;
     moisture30cm: number;
+    batteryLevel:number;
     timestamp: Date;
   } | null> {
     try {
@@ -103,11 +104,11 @@ class FirebaseService {
       const latestTimestamp = timestamps[0];
       const latestData = entries[latestTimestamp];
 
-      // Convert from sensor_1, sensor_2, sensor_3 format to moisture10cm, moisture20cm, moisture30cm
       return {
-        moisture10cm: latestData.sensor_1 || 0,
+        moisture10cm: latestData.sensor_3 || 0,
         moisture20cm: latestData.sensor_2 || 0,
-        moisture30cm: latestData.sensor_3 || 0,
+        moisture30cm: latestData.sensor_1 || 0,
+        batteryLevel: latestData.battery || 100,
         timestamp: new Date(latestData.timestamp * 1000), // Convert Unix timestamp to Date object
       };
     } catch (error) {
