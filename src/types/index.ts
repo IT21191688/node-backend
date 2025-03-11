@@ -4,7 +4,7 @@ import { Document } from 'mongoose';
 
 // Common Types
 export type SoilType = 'Lateritic' | 'Sandy Loam' | 'Cinnamon Sand' | 'Red Yellow Podzolic' | 'Alluvial';
-export type DeviceType = 'soil_sensor' | 'weather_station' | 'irrigation_controller';
+export type DeviceType = 'soil_sensor' | 'moisture_sensor' ;
 export type DeviceStatus = 'active' | 'inactive' | 'maintenance';
 export type ScheduleStatus = 'pending' | 'in_progress' | 'completed' | 'skipped' | 'cancelled';
 

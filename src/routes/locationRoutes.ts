@@ -20,7 +20,9 @@ router.get("/", locationController.getLocations);
 
 router.get("/:id", locationController.getLocationById);
 
-router.put("/:id", validateLocation, locationController.updateLocation);
+router.put("/:id", 
+  //validateLocation,
+   locationController.updateLocation);
 
 router.delete("/:id", locationController.deleteLocation);
 
