@@ -6,6 +6,7 @@ interface IActualYield extends Document {
   year: number;
   month: number;
   actual_yield: number;
+  yieldPrediction: Types.ObjectId;
 }
 
 const ActualYieldSchema = new Schema<IActualYield>({
@@ -14,6 +15,7 @@ const ActualYieldSchema = new Schema<IActualYield>({
   year: { type: Number, required: true },
   month: { type: Number, required: true },
   actual_yield: { type: Number, required: true },
+  yieldPrediction: { type: Schema.Types.ObjectId, ref: 'YieldPrediction' }, // Reference to YieldPrediction model
 }, { timestamps: true });
 
 const ActualYield = model<IActualYield>('ActualYield', ActualYieldSchema);

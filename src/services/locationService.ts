@@ -226,7 +226,7 @@ export class LocationService {
         },
         data,
         { new: true, runValidators: true }
-      ).populate("deviceId");
+      )
 
       if (!location) {
         throw new AppError(404, "Location not found");

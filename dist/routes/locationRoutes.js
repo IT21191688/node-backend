@@ -12,7 +12,7 @@ router.use(rateLimiter_1.rateLimiters.public);
 router.post("/", locationDeviceValidation_1.validateLocation, locationController.createLocation);
 router.get("/", locationController.getLocations);
 router.get("/:id", locationController.getLocationById);
-router.put("/:id", locationDeviceValidation_1.validateLocation, locationController.updateLocation);
+router.put("/:id", locationController.updateLocation);
 router.delete("/:id", locationController.deleteLocation);
 router.put("/:id/assign-device", auth_1.authenticateJWT, locationController.assignDeviceToLocation);
 router.put("/:id/remove-device", auth_1.authenticateJWT, locationController.removeDeviceFromLocation);

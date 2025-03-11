@@ -74,39 +74,26 @@ class CopraService {
             throw new errorHandler_1.AppError(500, 'Error fetching batch history');
         }
     }
-    async updateBatchNotes(userId, batchId, updates) {
+    async updateSingleNote(userId, batchId, id, note) {
         try {
-            const readingIds = updates.map(update => new mongoose_1.Types.ObjectId(update.readingId));
-            const existingReadings = await copraReading_1.CopraReading.find({
-                _id: { $in: readingIds },
+            const updatedReading = await copraReading_1.CopraReading.findOneAndUpdate({
+                _id: new mongoose_1.Types.ObjectId(id),
                 userId: new mongoose_1.Types.ObjectId(userId),
-                batchId: batchId,
-                deletedAt: null
-            });
-            if (existingReadings.length !== updates.length) {
-                throw new errorHandler_1.AppError(404, 'Some readings were not found or do not belong to this batch');
-            }
-            const updatePromises = updates.map(update => copraReading_1.CopraReading.findOneAndUpdate({
-                _id: new mongoose_1.Types.ObjectId(update.readingId),
-                userId: new mongoose_1.Types.ObjectId(userId),
-                batchId: batchId,
-                deletedAt: null
-            }, { $set: { notes: update.note } }, { new: true }));
-            const updatedReadings = await Promise.all(updatePromises);
-            const validUpdates = updatedReadings.filter(reading => reading !== null);
-            if (validUpdates.length === 0) {
-                throw new errorHandler_1.AppError(404, 'No readings were updated');
+                batchId: batchId
+            }, { notes: note }, { new: true });
+            if (!updatedReading) {
+                throw new errorHandler_1.AppError(404, 'Reading not found');
             }
             return {
                 status: 'success',
-                message: 'Batch notes updated successfully',
-                data: validUpdates
+                message: 'Note updated successfully',
+                data: updatedReading
             };
         }
         catch (error) {
             if (error instanceof errorHandler_1.AppError)
                 throw error;
-            throw new errorHandler_1.AppError(400, `Error updating batch notes: ${error.message}`);
+            throw new errorHandler_1.AppError(500, 'Error updating note');
         }
     }
     async deleteBatchReadings(userId, batchId) {
@@ -127,6 +114,27 @@ class CopraService {
             if (error instanceof errorHandler_1.AppError)
                 throw error;
             throw new errorHandler_1.AppError(500, 'Error deleting batch readings');
+        }
+    }
+    async deleteSingleReading(userId, batchId, id) {
+        try {
+            const result = await copraReading_1.CopraReading.findOneAndDelete({
+                _id: new mongoose_1.Types.ObjectId(id),
+                userId: new mongoose_1.Types.ObjectId(userId),
+                batchId: batchId
+            });
+            if (!result) {
+                throw new errorHandler_1.AppError(404, 'Reading not found');
+            }
+            return {
+                status: 'success',
+                message: 'Reading deleted successfully'
+            };
+        }
+        catch (error) {
+            if (error instanceof errorHandler_1.AppError)
+                throw error;
+            throw new errorHandler_1.AppError(500, 'Error deleting reading');
         }
     }
     async getAllBatches(userId) {
