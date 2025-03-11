@@ -5,11 +5,13 @@
 /.pnp
 .pnp.js
 
+/logs
 # testing
 /coverage
 
 # production
 /build
+/dist
 
 # misc
 .DS_Store
@@ -24,3 +26,4 @@ yarn-debug.log*
 yarn-error.log*
 
 /logs
+/dist

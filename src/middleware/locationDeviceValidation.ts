@@ -115,7 +115,7 @@ export const validateDevice = (req: Request, res: Response, next: NextFunction):
     }
 
     // Validate device type
-    const validTypes = ['soil_sensor', 'weather_station', 'irrigation_controller'];
+    const validTypes = ['soil_sensor', 'moisture_sensor'];
     if (!type || !validTypes.includes(type)) {
         errors.push({
             field: 'type',

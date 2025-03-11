@@ -78,7 +78,7 @@ const validateDevice = (req, res, next) => {
             message: 'Device ID must be at least 3 characters long'
         });
     }
-    const validTypes = ['soil_sensor', 'weather_station', 'irrigation_controller'];
+    const validTypes = ['soil_sensor', 'moisture_sensor'];
     if (!type || !validTypes.includes(type)) {
         errors.push({
             field: 'type',

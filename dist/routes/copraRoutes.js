@@ -10,7 +10,8 @@ router.use(rateLimiter_1.rateLimiters.public);
 router.post('/readings', copraController_1.copraController.createReading);
 router.get('/batches', copraController_1.copraController.getAllBatches);
 router.get('/batch/:batchId', copraController_1.copraController.getBatchHistory);
-router.put('/batch/:batchId/notes', copraController_1.copraController.updateBatchNotes);
+router.put('/batch/:batchId/:id', copraController_1.copraController.updateSingleNote);
 router.delete('/batch/:batchId', copraController_1.copraController.deleteBatchReadings);
+router.delete('/batch/:batchId/:id', copraController_1.copraController.deleteSingleReading);
 exports.default = router;
 //# sourceMappingURL=copraRoutes.js.map

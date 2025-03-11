@@ -39,74 +39,74 @@ const deviceSchema = new mongoose_1.Schema({
     deviceId: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
     },
     locationId: {
         type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'Location',
-        required: false
+        ref: "Location",
+        required: false,
     },
     userId: {
         type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+        ref: "User",
+        required: true,
     },
     type: {
         type: String,
         required: true,
-        enum: ['soil_sensor', 'weather_station', 'irrigation_controller']
+        enum: ["soil_sensor", "moisture_sensor"],
     },
     status: {
         type: String,
-        enum: ['active', 'inactive', 'maintenance'],
-        default: 'active'
+        enum: ["active", "inactive", "maintenance"],
+        default: "active",
     },
     lastReading: {
         moisture10cm: Number,
         moisture20cm: Number,
         moisture30cm: Number,
-        timestamp: Date
+        timestamp: Date,
     },
     lastMaintenance: {
-        type: Date
+        type: Date,
     },
     batteryLevel: {
         type: Number,
         min: 0,
-        max: 100
+        max: 100,
     },
     firmware: {
         type: String,
-        required: true
+        required: true,
     },
     settings: {
         readingInterval: {
             type: Number,
             required: true,
-            default: 30
+            default: 30,
         },
         reportingInterval: {
             type: Number,
             required: true,
-            default: 60
+            default: 60,
         },
         thresholds: {
             moisture: Number,
             temperature: Number,
-            humidity: Number
-        }
+            humidity: Number,
+        },
     },
     isActive: {
         type: Boolean,
-        default: true
-    }
+        default: true,
+    },
 }, {
-    timestamps: true
+    timestamps: true,
 });
 deviceSchema.index({ deviceId: 1 });
 deviceSchema.index({ locationId: 1 });
 deviceSchema.index({ userId: 1 });
 deviceSchema.index({ status: 1 });
 deviceSchema.index({ isActive: 1 });
-exports.Device = mongoose_1.default.model('Device', deviceSchema);
+exports.Device = mongoose_1.default.model("Device", deviceSchema);
 //# sourceMappingURL=device.js.map

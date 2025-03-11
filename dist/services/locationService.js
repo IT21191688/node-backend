@@ -109,7 +109,7 @@ class LocationService {
                 _id: locationId,
                 userId: new mongoose_1.Types.ObjectId(userId),
                 isActive: true,
-            }, data, { new: true, runValidators: true }).populate("deviceId");
+            }, data, { new: true, runValidators: true });
             if (!location) {
                 throw new errorHandler_1.AppError(404, "Location not found");
             }
