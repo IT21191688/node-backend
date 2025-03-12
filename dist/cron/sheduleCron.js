@@ -6,20 +6,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ScheduleCron = void 0;
 const node_cron_1 = __importDefault(require("node-cron"));
 const wateringService_1 = require("../services/wateringService");
+const deviceService_1 = require("../services/deviceService");
 class ScheduleCron {
     constructor() {
         this.wateringService = new wateringService_1.WateringService();
+        this.DeviceService = new deviceService_1.DeviceService();
         this.initCronJobs();
     }
     initCronJobs() {
-        node_cron_1.default.schedule('0 6 * * *', async () => {
-            console.log('Starting daily schedule creation...');
+        node_cron_1.default.schedule("* * * * *", async () => {
             try {
                 await this.wateringService.createDailySchedules();
-                console.log('Daily schedule creation completed successfully');
             }
             catch (error) {
-                console.error('Error in cron job:', error);
+                console.error("Error in cron job:", error);
+            }
+        });
+        node_cron_1.default.schedule("*/2 * * * *", async () => {
+            try {
+                const result = await this.DeviceService.updateDeviceBatteryLevels();
+            }
+            catch (error) {
+                console.error("Error in battery update cron job:", error);
             }
         });
     }
