@@ -2,7 +2,7 @@ import axios from 'axios';
 import PricePrediction from '../models/PricePrediction';
 
 class PricePredictionService {
-    private predictionApiUrl = 'http://127.0.0.1:5000/predict_price';
+    private predictionApiUrl = 'https://flask-be-7m0b.onrender.com/predict_price';
 
     public async predictPrice(data: any): Promise<any> {
         try {
