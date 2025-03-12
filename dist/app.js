@@ -32,6 +32,7 @@ class App {
         this.app.use(this.addRequestId);
         this.app.use(this.addResponseTime);
         this.app.use(requestLogger_1.requestLogger);
+        this.app.set('trust proxy', true);
         this.app.use((0, helmet_1.default)({
             contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false
         }));
