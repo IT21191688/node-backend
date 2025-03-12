@@ -33,7 +33,7 @@ class App {
         this.app.use(this.addResponseTime);
         this.app.use(requestLogger);
 
-        this.app.set('trust proxy', 1);
+        this.app.set('trust proxy', 'loopback, linklocal, uniquelocal');
 
         // Security middleware
         this.app.use(helmet({
