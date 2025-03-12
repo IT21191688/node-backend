@@ -2,7 +2,7 @@ import axios from 'axios';
 import YieldPrediction from '../models/YieldPrediction';
 
 class YieldPredictionService {
-  private predictionApiUrl = 'http://127.0.0.1:5000/predict';
+  private predictionApiUrl = 'https://flask-be-7m0b.onrender.com/predict';
 
   public async predictYield(data: any): Promise<any> {
     try {

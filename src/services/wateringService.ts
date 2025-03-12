@@ -37,7 +37,7 @@ export class WateringService {
 
   constructor() {
     this.weatherApiKey = "5dd16e6569f3cdae6509d32002b9dc67";
-    this.mlServiceUrl = process.env.ML_SERVICE_URL || "http://127.0.0.1:5000";
+    this.mlServiceUrl = process.env.ML_SERVICE_URL || "https://flask-be-7m0b.onrender.com";
   }
 
   private async getWeatherData(coordinates: {
