@@ -33,8 +33,12 @@ class App {
         this.app.use(this.addResponseTime);
         this.app.use(requestLogger);
 
-        this.app.set('trust proxy', true);
+        this.app.set('trust proxy', 1);
 
+        // Security middleware
+        this.app.use(helmet({
+            contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false
+        }));
         
         this.app.use(cors({
             origin: config.corsOrigin,
