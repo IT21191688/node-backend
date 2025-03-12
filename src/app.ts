@@ -33,7 +33,7 @@ class App {
         this.app.use(this.addResponseTime);
         this.app.use(requestLogger);
 
-        this.app.set('trust proxy', true);
+        this.app.set('trust proxy', 1);
 
         // Security middleware
         this.app.use(helmet({
