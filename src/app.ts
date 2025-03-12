@@ -33,11 +33,6 @@ class App {
         this.app.use(this.addResponseTime);
         this.app.use(requestLogger);
 
-
-        // Security middleware
-        this.app.use(helmet({
-            contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false
-        }));
         
         this.app.use(cors({
             origin: config.corsOrigin,
