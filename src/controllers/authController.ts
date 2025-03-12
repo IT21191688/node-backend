@@ -40,7 +40,7 @@ export class AuthController {
         res.status(200).json({
             status: 'success',
             message: 'Token sent to email',
-            ...(process.env.NODE_ENV === 'development' && { resetToken })
+            ...(process.env.NODE_ENV === 'production' && { resetToken })
         });
     });
 
