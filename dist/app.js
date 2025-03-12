@@ -55,7 +55,7 @@ class App {
             limit: '10kb'
         }));
         this.app.use((0, cookie_parser_1.default)());
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === 'production') {
             this.app.use((0, morgan_1.default)('dev'));
         }
         this.app.use((0, compression_1.default)());
@@ -64,7 +64,7 @@ class App {
         try {
             const conn = await mongoose_1.default.connect(config_1.config.database.url, {
                 ...config_1.config.database.options,
-                autoIndex: process.env.NODE_ENV === 'development'
+                autoIndex: process.env.NODE_ENV === 'production'
             });
             logger_1.default.info('MongoDB Connected Successfully!', {
                 database: conn.connection.name,
@@ -154,7 +154,7 @@ class App {
         try {
             const port = config_1.config.port;
             const server = this.app.listen(port, () => {
-                logger_1.default.info(`Server running on port ${port} in ${process.env.NODE_ENV || 'development'} mode`);
+                logger_1.default.info(`Server running on port ${port} in ${process.env.NODE_ENV || 'production'} mode`);
                 logger_1.default.info(`Server URL: http://localhost:${port}`);
             });
             server.on('error', (error) => {
