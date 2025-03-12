@@ -35,10 +35,7 @@ class App {
 
         this.app.set('trust proxy', 'loopback, linklocal, uniquelocal');
 
-        // Security middleware
-        this.app.use(helmet({
-            contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false
-        }));
+
         
         this.app.use(cors({
             origin: config.corsOrigin,
