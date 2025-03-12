@@ -20,9 +20,9 @@ class CopraController {
             const userId = req.user.id;
             const batches = await copraService.getAllBatches(userId);
             res.status(200).json({
-                status: 'success',
-                message: 'Batches retrieved successfully',
-                data: batches
+                status: "success",
+                message: "Batches retrieved successfully",
+                data: batches,
             });
         }
         catch (error) {
@@ -46,7 +46,7 @@ class CopraController {
             const { batchId, id } = req.params;
             const { note } = req.body;
             if (!note) {
-                throw new errorHandler_1.AppError(400, 'Note is required');
+                throw new errorHandler_1.AppError(400, "Note is required");
             }
             const result = await copraService.updateSingleNote(userId, batchId, id, note);
             res.status(200).json(result);
@@ -71,6 +71,16 @@ class CopraController {
             const userId = req.user.id;
             const { batchId, id } = req.params;
             const result = await copraService.deleteSingleReading(userId, batchId, id);
+            res.status(200).json(result);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async getMoistureLevel(req, res, next) {
+        try {
+            const { deviceId } = req.params;
+            const result = await copraService.getMoistureLevel(deviceId);
             res.status(200).json(result);
         }
         catch (error) {

@@ -6,10 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const ActualYield_1 = __importDefault(require("../models/ActualYield"));
 class ActualYieldService {
     async createActualYield(data, userId, locationId) {
+        const yieldPredictionId = data.yieldPredictionId;
         const actualYield = new ActualYield_1.default({
             ...data,
             user: userId,
             location: locationId,
+            yieldPrediction: yieldPredictionId
         });
         await actualYield.save();
         return actualYield;
@@ -19,6 +21,11 @@ class ActualYieldService {
     }
     async getActualYieldById(id) {
         return ActualYield_1.default.findById(id);
+    }
+    async getActualYieldByPrdiction(yieldPredictionId) {
+        return ActualYield_1.default.find({ yieldPrediction: yieldPredictionId })
+            .sort({ createdAt: -1 })
+            .limit(1);
     }
     async deleteActualYield(id) {
         return ActualYield_1.default.deleteOne({ _id: id });
