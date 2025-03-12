@@ -18,7 +18,7 @@ const errorHandler = (err, _req, res, _next) => {
             status: err.status,
             message: err.message,
             errors: err.errors,
-            ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+            ...(process.env.NODE_ENV === 'production' && { stack: err.stack })
         });
         return;
     }
@@ -26,7 +26,7 @@ const errorHandler = (err, _req, res, _next) => {
     res.status(500).json({
         status: 'error',
         message: 'Internal server error',
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+        ...(process.env.NODE_ENV === 'production' && { stack: err.stack })
     });
 };
 exports.errorHandler = errorHandler;
