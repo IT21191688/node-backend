@@ -13,5 +13,6 @@ router.get('/batch/:batchId', copraController_1.copraController.getBatchHistory)
 router.put('/batch/:batchId/:id', copraController_1.copraController.updateSingleNote);
 router.delete('/batch/:batchId', copraController_1.copraController.deleteBatchReadings);
 router.delete('/batch/:batchId/:id', copraController_1.copraController.deleteSingleReading);
+router.post('/getMoisturelevel/:deviceId', copraController_1.copraController.getMoistureLevel);
 exports.default = router;
 //# sourceMappingURL=copraRoutes.js.map
