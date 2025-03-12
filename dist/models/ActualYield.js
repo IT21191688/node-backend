@@ -7,6 +7,7 @@ const ActualYieldSchema = new mongoose_1.Schema({
     year: { type: Number, required: true },
     month: { type: Number, required: true },
     actual_yield: { type: Number, required: true },
+    yieldPrediction: { type: mongoose_1.Schema.Types.ObjectId, ref: 'YieldPrediction' },
 }, { timestamps: true });
 const ActualYield = (0, mongoose_1.model)('ActualYield', ActualYieldSchema);
 exports.default = ActualYield;

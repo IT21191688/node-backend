@@ -13,6 +13,7 @@ router.use(rateLimiter_1.rateLimiters.public);
 router.post('/actual-yield', ActualYieldController_1.default.createActualYield);
 router.get('/actual-yields', ActualYieldController_1.default.getActualYieldsByUser);
 router.get('/actual-yield/:id', ActualYieldController_1.default.getActualYieldById);
+router.get('/actual-yield-byPrediction/:id', ActualYieldController_1.default.getActualYieldByPrdiction);
 router.delete('/actual-yield/:id', ActualYieldController_1.default.deleteActualYield);
 exports.default = router;
 //# sourceMappingURL=actualYieldRoutes.js.map

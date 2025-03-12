@@ -11,6 +11,7 @@ const locationRoutes_1 = __importDefault(require("./locationRoutes"));
 const deviceRoutes_1 = __importDefault(require("./deviceRoutes"));
 const yieldPredictionRoutes_1 = __importDefault(require("./yieldPredictionRoutes"));
 const actualYieldRoutes_1 = __importDefault(require("./actualYieldRoutes"));
+const pricePredictionRoutes_1 = __importDefault(require("./pricePredictionRoutes"));
 const copraRoutes_1 = __importDefault(require("./copraRoutes"));
 const rateLimiter_1 = require("../middleware/rateLimiter");
 const router = (0, express_1.Router)();
@@ -30,6 +31,7 @@ router.use('/v1/locations', locationRoutes_1.default);
 router.use('/v1/devices', deviceRoutes_1.default);
 router.use('/v1/yield', yieldPredictionRoutes_1.default);
 router.use('/v1/actual-yield', actualYieldRoutes_1.default);
+router.use('/v1/price', pricePredictionRoutes_1.default);
 router.use('/v1/copra', copraRoutes_1.default);
 exports.default = router;
 //# sourceMappingURL=index.js.map

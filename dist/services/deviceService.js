@@ -5,6 +5,7 @@ const mongoose_1 = require("mongoose");
 const device_1 = require("../models/device");
 const location_1 = require("../models/location");
 const errorHandler_1 = require("../middleware/errorHandler");
+const firebase_1 = require("../config/firebase");
 class DeviceService {
     async registerDevice(userId, data) {
         try {
@@ -13,7 +14,7 @@ class DeviceService {
                 isActive: true,
             });
             if (existingDevice) {
-                throw new errorHandler_1.AppError(400, "Device ID already exists");
+                throw new errorHandler_1.AppError(405, "Device ID already exists");
             }
             const device = await device_1.Device.create({
                 ...data,
@@ -110,18 +111,19 @@ class DeviceService {
             const device = await device_1.Device.findOne({
                 deviceId: deviceId,
                 userId: new mongoose_1.Types.ObjectId(userId),
-                isActive: true
+                isActive: true,
             });
             if (!device) {
                 throw new errorHandler_1.AppError(404, "Device not found");
             }
-            if ((data.status === 'inactive' || data.status === 'maintenance') && device.locationId) {
+            if ((data.status === "inactive" || data.status === "maintenance") &&
+                device.locationId) {
                 throw new errorHandler_1.AppError(400, "Cannot change device status to inactive or maintenance while assigned to a location");
             }
             const updatedDevice = await device_1.Device.findOneAndUpdate({
                 deviceId: deviceId,
                 userId: new mongoose_1.Types.ObjectId(userId),
-                isActive: true
+                isActive: true,
             }, data, { new: true, runValidators: true });
             return updatedDevice;
         }
@@ -129,6 +131,38 @@ class DeviceService {
             if (error instanceof errorHandler_1.AppError)
                 throw error;
             throw new errorHandler_1.AppError(400, "Error updating device");
+        }
+    }
+    async updateDeviceBatteryLevels() {
+        try {
+            const devices = await device_1.Device.find({
+                isActive: true,
+                status: { $ne: "inactive" },
+            });
+            let updatedCount = 0;
+            for (const device of devices) {
+                try {
+                    const readings = await firebase_1.firebaseService.getSoilMoistureReadings(device.deviceId);
+                    if (readings && readings.batteryLevel !== undefined) {
+                        await device_1.Device.findOneAndUpdate({ deviceId: device.deviceId }, {
+                            batteryLevel: readings.batteryLevel,
+                            lastBatteryUpdate: new Date(),
+                        });
+                        updatedCount++;
+                    }
+                }
+                catch (deviceError) {
+                    console.error(`Error updating battery for device ${device.deviceId}:`, deviceError);
+                }
+            }
+            return {
+                updated: updatedCount,
+                message: `Updated battery levels for ${updatedCount} devices`,
+            };
+        }
+        catch (error) {
+            console.error("Error in updateDeviceBatteryLevels:", error);
+            throw error;
         }
     }
 }

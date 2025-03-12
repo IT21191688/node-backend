@@ -9,6 +9,7 @@ const mongoose_1 = require("mongoose");
 const wateringSchedule_1 = require("../models/wateringSchedule");
 const location_1 = require("../models/location");
 const errorHandler_1 = require("../middleware/errorHandler");
+const firebase_1 = require("../config/firebase");
 class WateringService {
     constructor() {
         this.weatherApiKey = "5dd16e6569f3cdae6509d32002b9dc67";
@@ -50,6 +51,24 @@ class WateringService {
         };
         return ranges[prediction];
     }
+    async getSoilMoistureData(deviceId) {
+        try {
+            const readings = await firebase_1.firebaseService.getSoilMoistureReadings(deviceId);
+            if (!readings) {
+                console.log(`No readings found for device ${deviceId}`);
+                return null;
+            }
+            return {
+                moisture10cm: readings.moisture10cm,
+                moisture20cm: readings.moisture20cm,
+                moisture30cm: readings.moisture30cm,
+            };
+        }
+        catch (error) {
+            console.error(`Error getting soil moisture data for device ${deviceId}:`, error);
+            return null;
+        }
+    }
     async createSchedule(userId, locationId, data) {
         try {
             const location = await location_1.Location.findOne({
@@ -62,11 +81,24 @@ class WateringService {
             }
             const weatherData = await this.getWeatherData(location.coordinates);
             let soilData = data.soilConditions;
-            soilData = {
-                moisture10cm: 45.5,
-                moisture20cm: 50.2,
-                moisture30cm: 55.8,
+            const generateRandomSoilData = () => {
+                return {
+                    moisture10cm: Math.round((15 + Math.random() * 45) * 10) / 10,
+                    moisture20cm: Math.round((20 + Math.random() * 40) * 10) / 10,
+                    moisture30cm: Math.round((25 + Math.random() * 45) * 10) / 10,
+                };
             };
+            soilData = generateRandomSoilData();
+            if (location.deviceId) {
+                const firebaseSoilData = await this.getSoilMoistureData(location.deviceId);
+                if (firebaseSoilData) {
+                    soilData = firebaseSoilData;
+                    console.log(`Using real soil data for device ${location.deviceId}:`, soilData);
+                }
+                else {
+                    console.log(`Using default soil data for device ${location.deviceId}`);
+                }
+            }
             const mlPrediction = await this.getPrediction({
                 soilType: location.soilType,
                 soilMoisture10cm: soilData.moisture10cm,
@@ -167,11 +199,24 @@ class WateringService {
             for (const location of locations) {
                 try {
                     const weatherData = await this.getWeatherData(location.coordinates);
-                    const soilData = {
-                        moisture10cm: 45.5,
-                        moisture20cm: 50.2,
-                        moisture30cm: 55.8,
+                    const generateRandomSoilData = () => {
+                        return {
+                            moisture10cm: Math.round((15 + Math.random() * 45) * 10) / 10,
+                            moisture20cm: Math.round((20 + Math.random() * 40) * 10) / 10,
+                            moisture30cm: Math.round((25 + Math.random() * 45) * 10) / 10,
+                        };
                     };
+                    let soilData = generateRandomSoilData();
+                    if (location.deviceId) {
+                        const firebaseSoilData = await this.getSoilMoistureData(location.deviceId);
+                        if (firebaseSoilData) {
+                            soilData = firebaseSoilData;
+                            console.log(`Using real soil data for device ${location.deviceId}:`, soilData);
+                        }
+                        else {
+                            console.log(`Using default soil data for device ${location.deviceId}`);
+                        }
+                    }
                     const mlPrediction = await this.getPrediction({
                         soilType: location.soilType,
                         soilMoisture10cm: soilData.moisture10cm,
