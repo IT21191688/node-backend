@@ -65,7 +65,7 @@ class App {
         this.app.use(cookieParser());
 
         // Development logging
-        if (process.env.NODE_ENV === 'production') {
+        if (process.env.NODE_ENV === 'development') {
             this.app.use(morgan('dev'));
         }
 
@@ -77,7 +77,7 @@ class App {
         try {
             const conn = await mongoose.connect(config.database.url, {
                 ...config.database.options,
-                autoIndex: process.env.NODE_ENV === 'production'
+                autoIndex: process.env.NODE_ENV === 'development'
             });
 
             logger.info('MongoDB Connected Successfully!', {
@@ -195,7 +195,7 @@ class App {
         try {
             const port = config.port;
             const server = this.app.listen(port, () => {
-                logger.info(`Server running on port ${port} in ${process.env.NODE_ENV || 'production'} mode`);
+                logger.info(`Server running on port ${port} in ${process.env.NODE_ENV || 'development'} mode`);
                 logger.info(`Server URL: http://localhost:${port}`);
             });
 
