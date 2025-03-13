@@ -2,7 +2,8 @@ import axios from 'axios';
 import PricePrediction from '../models/PricePrediction';
 
 class PricePredictionService {
-    private predictionApiUrl = 'https://flask-be-7m0b.onrender.com/predict_price';
+    private predictionApiUrl = 'https://flask-be-deploy.onrender.com/predict_price';
+    
 
     public async predictPrice(data: any): Promise<any> {
         try {
