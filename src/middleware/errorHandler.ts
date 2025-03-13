@@ -33,7 +33,7 @@ export const errorHandler = (
             status: err.status,
             message: err.message,
             errors: err.errors,
-            ...(process.env.NODE_ENV === 'production' && { stack: err.stack })
+            ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
         });
         return;
     }
@@ -43,7 +43,7 @@ export const errorHandler = (
     res.status(500).json({
         status: 'error',
         message: 'Internal server error',
-        ...(process.env.NODE_ENV === 'production' && { stack: err.stack })
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
     });
 };
 
