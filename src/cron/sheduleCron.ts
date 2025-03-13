@@ -30,7 +30,7 @@ export class ScheduleCron {
       }
     });
 
-    cron.schedule("*/2 * * * *", async () => {
+    cron.schedule("0 6 * * *", async () => {
       // console.log('Starting battery level updates...');
       try {
         const result = await this.DeviceService.updateDeviceBatteryLevels();
