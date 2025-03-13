@@ -22,7 +22,7 @@ class ScheduleCron {
                 console.error("Error in cron job:", error);
             }
         });
-        node_cron_1.default.schedule("*/2 * * * *", async () => {
+        node_cron_1.default.schedule("0 6 * * *", async () => {
             try {
                 const result = await this.DeviceService.updateDeviceBatteryLevels();
             }
