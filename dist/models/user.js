@@ -59,6 +59,16 @@ const userSchema = new mongoose_1.Schema({
             message: 'Please provide a valid email'
         }
     },
+    phone: {
+        type: String,
+        trim: true,
+        validate: {
+            validator: function (v) {
+                return /^\+?[\d\s()-]{8,20}$/.test(v);
+            },
+            message: props => `${props.value} is not a valid phone number!`
+        }
+    },
     password: {
         type: String,
         required: [true, 'Password is required'],
@@ -76,7 +86,7 @@ const userSchema = new mongoose_1.Schema({
     },
     lastLogin: {
         type: Date
-    }
+    },
 }, {
     timestamps: true
 });
