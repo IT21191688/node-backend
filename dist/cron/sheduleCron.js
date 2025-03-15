@@ -14,7 +14,7 @@ class ScheduleCron {
         this.initCronJobs();
     }
     initCronJobs() {
-        node_cron_1.default.schedule("* * * * *", async () => {
+        node_cron_1.default.schedule("0 6 * * *", async () => {
             try {
                 await this.wateringService.createDailySchedules();
             }
@@ -22,7 +22,7 @@ class ScheduleCron {
                 console.error("Error in cron job:", error);
             }
         });
-        node_cron_1.default.schedule("0 6 * * *", async () => {
+        node_cron_1.default.schedule("* * * * *", async () => {
             try {
                 const result = await this.DeviceService.updateDeviceBatteryLevels();
             }
