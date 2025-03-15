@@ -6,6 +6,7 @@ export interface IUser extends Document {
     name: string;
     email: string;
     password: string;
+    phone: string; // Added phone field to interface
     role: 'user' | 'admin';
     isActive: boolean;
     lastLogin?: Date;
@@ -33,6 +34,17 @@ const userSchema = new Schema({
             message: 'Please provide a valid email'
         }
     },
+    phone: {
+        type: String,
+        trim: true,
+        validate: {
+            validator: function(v: string) {
+                // Basic phone validation - can be customized based on your requirements
+                return /^\+?[\d\s()-]{8,20}$/.test(v);
+            },
+            message: props => `${props.value} is not a valid phone number!`
+        }
+    },
     password: {
         type: String,
         required: [true, 'Password is required'],
@@ -50,7 +62,7 @@ const userSchema = new Schema({
     },
     lastLogin: {
         type: Date
-    }
+    },
 }, {
     timestamps: true
 });
