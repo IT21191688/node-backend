@@ -20,7 +20,7 @@ export class ScheduleCron {
 
   private initCronJobs() {
     // Run every day at 6:00 AM
-    cron.schedule("* * * * *", async () => {
+    cron.schedule("0 6 * * *", async () => {
       // console.log('Starting daily schedule creation...');
       try {
         await this.wateringService.createDailySchedules();
@@ -30,11 +30,10 @@ export class ScheduleCron {
       }
     });
 
-    cron.schedule("0 6 * * *", async () => {
+    cron.schedule("* * * * *", async () => {
       // console.log('Starting battery level updates...');
       try {
         const result = await this.DeviceService.updateDeviceBatteryLevels();
-        // console.log(`Battery update completed: ${result.message}`);
       } catch (error) {
         console.error("Error in battery update cron job:", error);
       }
