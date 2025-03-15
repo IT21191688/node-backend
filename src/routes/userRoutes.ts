@@ -13,6 +13,10 @@ const userController = new UserController();
 // Apply authentication to all routes
 router.use(authenticateJWT);
 
+
+router.get('/profile', userController.getProfile);
+router.put('/profile', validateUserUpdate, userController.updateProfile);
+
 // Admin only routes
 router.use(authorizeRoles('admin'));
 
