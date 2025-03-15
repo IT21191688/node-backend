@@ -10,6 +10,8 @@ const validation_1 = require("../middleware/validation");
 const router = (0, express_1.Router)();
 const userController = new userController_1.default();
 router.use(auth_1.authenticateJWT);
+router.get('/profile', userController.getProfile);
+router.put('/profile', validation_1.validateUserUpdate, userController.updateProfile);
 router.use((0, auth_1.authorizeRoles)('admin'));
 router.get('/', validation_1.validatePagination, userController.getUsers);
 router.get('/:id', validation_1.validateId, userController.getUserById);
