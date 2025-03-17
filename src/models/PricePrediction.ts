@@ -17,6 +17,7 @@ interface IPricePrediction extends Document {
   predicted_price: number;
   month: string;
   year: number;
+  isLatest: boolean;
 }
 
 const PricePredictionSchema = new Schema<IPricePrediction>({
@@ -35,7 +36,8 @@ const PricePredictionSchema = new Schema<IPricePrediction>({
   },
   predicted_price: { type: Number, required: true },
   month: { type: String, required: true },
-  year: { type: Number, required: true }
+  year: { type: Number, required: true },
+  isLatest: { type: Boolean, default: true }
 }, { timestamps: true });
 
 const PricePrediction = model<IPricePrediction>('PricePrediction', PricePredictionSchema);
