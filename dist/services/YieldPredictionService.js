@@ -7,7 +7,7 @@ const axios_1 = __importDefault(require("axios"));
 const YieldPrediction_1 = __importDefault(require("../models/YieldPrediction"));
 class YieldPredictionService {
     constructor() {
-        this.predictionApiUrl = 'https://flask-be-7m0b.onrender.com/predict';
+        this.predictionApiUrl = 'https://flask-be-deploy.onrender.com/predict';
     }
     async predictYield(data) {
         try {
