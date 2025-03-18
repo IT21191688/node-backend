@@ -97,7 +97,7 @@ export class WateringService {
     return ranges[prediction as keyof typeof ranges];
   }
 
-  private async getSoilMoistureData(
+  public async getSoilMoistureData(
     deviceId: string
   ): Promise<SoilData | null> {
     try {
