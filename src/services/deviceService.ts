@@ -3,6 +3,7 @@ import { Device, IDevice } from "../models/device";
 import { Location } from "../models/location";
 import { AppError } from "../middleware/errorHandler";
 import { firebaseService } from "../config/firebase";
+import { notificationService } from "./notificationService";
 
 export class DeviceService {
   async registerDevice(
@@ -104,36 +105,36 @@ export class DeviceService {
     }
   }
 
-  async updateDeviceReading(
-    deviceId: string,
-    reading: {
-      moisture10cm: number;
-      moisture20cm: number;
-      moisture30cm: number;
-    }
-  ): Promise<IDevice> {
-    try {
-      const device = await Device.findOneAndUpdate(
-        { deviceId, isActive: true },
-        {
-          lastReading: {
-            ...reading,
-            timestamp: new Date(),
-          },
-        },
-        { new: true }
-      );
+  // async updateDeviceReading(
+  //   deviceId: string,
+  //   reading: {
+  //     moisture10cm: number;
+  //     moisture20cm: number;
+  //     moisture30cm: number;
+  //   }
+  // ): Promise<IDevice> {
+  //   try {
+  //     const device = await Device.findOneAndUpdate(
+  //       { deviceId, isActive: true },
+  //       {
+  //         lastReading: {
+  //           ...reading,
+  //           timestamp: new Date(),
+  //         },
+  //       },
+  //       { new: true }
+  //     );
 
-      if (!device) {
-        throw new AppError(404, "Device not found");
-      }
+  //     if (!device) {
+  //       throw new AppError(404, "Device not found");
+  //     }
 
-      return device;
-    } catch (error) {
-      if (error instanceof AppError) throw error;
-      throw new AppError(400, "Error updating device reading");
-    }
-  }
+  //     return device;
+  //   } catch (error) {
+  //     if (error instanceof AppError) throw error;
+  //     throw new AppError(400, "Error updating device reading");
+  //   }
+  // }
 
   async updateDevice(
     deviceId: string,
@@ -181,18 +182,72 @@ export class DeviceService {
     }
   }
 
+  // async updateDeviceBatteryLevels(): Promise<{
+  //   updated: number;
+  //   message: string;
+  // }> {
+  //   try {
+  //     // Get all active devices
+  //     const devices = await Device.find({
+  //       isActive: true,
+  //       status: { $ne: "inactive" }, // Skip inactive devices
+  //     });
+
+  //     let updatedCount = 0;
+
+  //     // Process each device
+  //     for (const device of devices) {
+  //       try {
+  //         // Get latest battery reading from Firebase
+  //         const readings = await firebaseService.getSoilMoistureReadings(
+  //           device.deviceId
+  //         );
+
+  //         if (readings && readings.batteryLevel !== undefined) {
+  //           // Update the device's battery level in the database
+  //           await Device.findOneAndUpdate(
+  //             { deviceId: device.deviceId },
+  //             {
+  //               batteryLevel: readings.batteryLevel,
+  //               lastBatteryUpdate: new Date(),
+  //             }
+  //           );
+
+  //           updatedCount++;
+  //         }
+  //       } catch (deviceError) {
+  //         console.error(
+  //           `Error updating battery for device ${device.deviceId}:`,
+  //           deviceError
+  //         );
+  //         // Continue with next device
+  //       }
+  //     }
+
+  //     return {
+  //       updated: updatedCount,
+  //       message: `Updated battery levels for ${updatedCount} devices`,
+  //     };
+  //   } catch (error) {
+  //     console.error("Error in updateDeviceBatteryLevels:", error);
+  //     throw error;
+  //   }
+  // }
+
   async updateDeviceBatteryLevels(): Promise<{
     updated: number;
     message: string;
+    notificationsSent: number;
   }> {
     try {
       // Get all active devices
-      const devices = await Device.find({
+      const devices: any = await Device.find({
         isActive: true,
         status: { $ne: "inactive" }, // Skip inactive devices
-      });
+      }).populate("userId", "notificationPreferences"); // Get notification preferences
 
       let updatedCount = 0;
+      let notificationsSent = 0;
 
       // Process each device
       for (const device of devices) {
@@ -203,16 +258,49 @@ export class DeviceService {
           );
 
           if (readings && readings.batteryLevel !== undefined) {
+            const previousBatteryLevel = device.batteryLevel || 100;
+            const newBatteryLevel = readings.batteryLevel;
+
             // Update the device's battery level in the database
             await Device.findOneAndUpdate(
               { deviceId: device.deviceId },
               {
-                batteryLevel: readings.batteryLevel,
+                batteryLevel: newBatteryLevel,
                 lastBatteryUpdate: new Date(),
               }
             );
 
             updatedCount++;
+
+            // Check if battery alert should be sent
+            const user = device.userId as any;
+            const shouldNotify =
+              user.notificationPreferences?.batteryAlerts !== false;
+
+            // Send notification if battery level is low (less than 20%)
+            // and we haven't sent a notification in the last 24 hours
+            if (
+              shouldNotify &&
+              newBatteryLevel < 20 &&
+              (!device.lastNotificationSent ||
+                Date.now() - device.lastNotificationSent.getTime() >
+                  24 * 60 * 60 * 1000)
+            ) {
+              const notificationSent =
+                await notificationService.sendLowBatteryAlert(
+                  device.deviceId,
+                  newBatteryLevel
+                );
+
+              if (notificationSent) {
+                notificationsSent++;
+                // Update the last notification sent timestamp
+                await Device.findOneAndUpdate(
+                  { deviceId: device.deviceId },
+                  { lastNotificationSent: new Date() }
+                );
+              }
+            }
           }
         } catch (deviceError) {
           console.error(
@@ -226,10 +314,82 @@ export class DeviceService {
       return {
         updated: updatedCount,
         message: `Updated battery levels for ${updatedCount} devices`,
+        notificationsSent,
       };
     } catch (error) {
       console.error("Error in updateDeviceBatteryLevels:", error);
       throw error;
+    }
+  }
+
+  async updateDeviceReading(
+    deviceId: string,
+    reading: {
+      moisture10cm: number;
+      moisture20cm: number;
+      moisture30cm: number;
+    }
+  ): Promise<IDevice> {
+    try {
+      const device = await Device.findOne({
+        deviceId,
+        isActive: true,
+      }).populate("userId", "notificationPreferences");
+
+      if (!device) {
+        throw new AppError(404, "Device not found");
+      }
+
+      // Update the device reading
+      const updatedDevice = await Device.findOneAndUpdate(
+        { deviceId, isActive: true },
+        {
+          lastReading: {
+            ...reading,
+            timestamp: new Date(),
+          },
+        },
+        { new: true }
+      );
+
+      // Check if moisture alert should be sent
+      const user = device.userId as any;
+      const shouldNotify =
+        user.notificationPreferences?.moistureAlerts !== false;
+      const moistureThreshold = device.settings?.thresholds?.moisture || 20;
+
+      // Calculate average moisture level
+      const avgMoisture =
+        (reading.moisture10cm + reading.moisture20cm + reading.moisture30cm) /
+        3;
+
+      // Send notification if average moisture is below threshold
+      // and we haven't sent a notification in the last 24 hours
+      if (
+        shouldNotify &&
+        avgMoisture < moistureThreshold &&
+        (!device.lastNotificationSent ||
+          Date.now() - device.lastNotificationSent.getTime() >
+            24 * 60 * 60 * 1000)
+      ) {
+        const notificationSent = await notificationService.sendMoistureAlert(
+          deviceId,
+          avgMoisture
+        );
+
+        if (notificationSent) {
+          // Update the last notification sent timestamp
+          await Device.findOneAndUpdate(
+            { deviceId },
+            { lastNotificationSent: new Date() }
+          );
+        }
+      }
+
+      return updatedDevice as IDevice;
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      throw new AppError(400, "Error updating device reading");
     }
   }
 }
