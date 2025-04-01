@@ -1,6 +1,7 @@
 import { initializeApp, cert } from "firebase-admin/app";
 import { getDatabase } from "firebase-admin/database";
 import { getFirestore } from "firebase-admin/firestore";
+import { getMessaging } from "firebase-admin/messaging";
 
 interface FirebaseConfig {
   credential: {
@@ -15,6 +16,7 @@ class FirebaseService {
   private static instance: FirebaseService;
   private db: any;
   private rtdb: any;
+  private fcm: any;
 
   private constructor() {
     try {
@@ -38,6 +40,7 @@ class FirebaseService {
       // Initialize Firestore and Realtime Database
       this.db = getFirestore(app);
       this.rtdb = getDatabase(app);
+      this.fcm = getMessaging(app);
 
       console.log("Firebase initialized successfully");
     } catch (error) {
@@ -75,7 +78,7 @@ class FirebaseService {
     moisture10cm: number;
     moisture20cm: number;
     moisture30cm: number;
-    batteryLevel:number;
+    batteryLevel: number;
     timestamp: Date;
   } | null> {
     try {
@@ -117,89 +120,89 @@ class FirebaseService {
     }
   }
 
-//   // Subscribe to Soil Moisture Updates - modified to work with your data structure
-//   public subscribeSoilMoistureUpdates(
-//     deviceId: string,
-//     callback: (data: any) => void
-//   ): void {
-//     const devicePath = this.getDevicePath(deviceId);
-//     const ref = this.rtdb.ref(`soil_analyzer/${devicePath}/history`);
+  //   // Subscribe to Soil Moisture Updates - modified to work with your data structure
+  //   public subscribeSoilMoistureUpdates(
+  //     deviceId: string,
+  //     callback: (data: any) => void
+  //   ): void {
+  //     const devicePath = this.getDevicePath(deviceId);
+  //     const ref = this.rtdb.ref(`soil_analyzer/${devicePath}/history`);
 
-//     ref.on("child_added", (snapshot: any) => {
-//       const data = snapshot.val();
-//       // Convert from sensor_1, sensor_2, sensor_3 format to moisture10cm, moisture20cm, moisture30cm
-//       callback({
-//         moisture10cm: data.sensor_1 || 0,
-//         moisture20cm: data.sensor_2 || 0,
-//         moisture30cm: data.sensor_3 || 0,
-//         timestamp: new Date(data.timestamp * 1000),
-//       });
-//     });
-//   }
+  //     ref.on("child_added", (snapshot: any) => {
+  //       const data = snapshot.val();
+  //       // Convert from sensor_1, sensor_2, sensor_3 format to moisture10cm, moisture20cm, moisture30cm
+  //       callback({
+  //         moisture10cm: data.sensor_1 || 0,
+  //         moisture20cm: data.sensor_2 || 0,
+  //         moisture30cm: data.sensor_3 || 0,
+  //         timestamp: new Date(data.timestamp * 1000),
+  //       });
+  //     });
+  //   }
 
-//   // Store Device Reading History
-//   public async storeReadingHistory(
-//     deviceId: string,
-//     reading: any
-//   ): Promise<void> {
-//     try {
-//       await this.db
-//         .collection("deviceReadings")
-//         .doc(deviceId)
-//         .collection("history")
-//         .add({
-//           ...reading,
-//           timestamp: new Date(),
-//         });
-//     } catch (error) {
-//       console.error("Error storing reading history:", error);
-//       throw error;
-//     }
-//   }
+  //   // Store Device Reading History
+  //   public async storeReadingHistory(
+  //     deviceId: string,
+  //     reading: any
+  //   ): Promise<void> {
+  //     try {
+  //       await this.db
+  //         .collection("deviceReadings")
+  //         .doc(deviceId)
+  //         .collection("history")
+  //         .add({
+  //           ...reading,
+  //           timestamp: new Date(),
+  //         });
+  //     } catch (error) {
+  //       console.error("Error storing reading history:", error);
+  //       throw error;
+  //     }
+  //   }
 
-//   // Get Device Reading History
-//   public async getReadingHistory(
-//     deviceId: string,
-//     days: number = 7
-//   ): Promise<any[]> {
-//     try {
-//       const startDate = new Date();
-//       startDate.setDate(startDate.getDate() - days);
+  //   // Get Device Reading History
+  //   public async getReadingHistory(
+  //     deviceId: string,
+  //     days: number = 7
+  //   ): Promise<any[]> {
+  //     try {
+  //       const startDate = new Date();
+  //       startDate.setDate(startDate.getDate() - days);
 
-//       const snapshot = await this.db
-//         .collection("deviceReadings")
-//         .doc(deviceId)
-//         .collection("history")
-//         .where("timestamp", ">=", startDate)
-//         .orderBy("timestamp", "desc")
-//         .get();
+  //       const snapshot = await this.db
+  //         .collection("deviceReadings")
+  //         .doc(deviceId)
+  //         .collection("history")
+  //         .where("timestamp", ">=", startDate)
+  //         .orderBy("timestamp", "desc")
+  //         .get();
 
-//       return snapshot.docs.map((doc: { id: any; data: () => any }) => ({
-//         id: doc.id,
-//         ...doc.data(),
-//       }));
-//     } catch (error) {
-//       console.error("Error getting reading history:", error);
-//       throw error;
-//     }
-//   }
+  //       return snapshot.docs.map((doc: { id: any; data: () => any }) => ({
+  //         id: doc.id,
+  //         ...doc.data(),
+  //       }));
+  //     } catch (error) {
+  //       console.error("Error getting reading history:", error);
+  //       throw error;
+  //     }
+  //   }
 
-//   // Get all saved soil analyzer devices
-//   public async getAllSoilAnalyzerDevices(): Promise<string[]> {
-//     try {
-//       const ref = this.rtdb.ref("soil_analyzer");
-//       const snapshot = await ref.once("value");
+  //   // Get all saved soil analyzer devices
+  //   public async getAllSoilAnalyzerDevices(): Promise<string[]> {
+  //     try {
+  //       const ref = this.rtdb.ref("soil_analyzer");
+  //       const snapshot = await ref.once("value");
 
-//       if (!snapshot.exists()) {
-//         return [];
-//       }
+  //       if (!snapshot.exists()) {
+  //         return [];
+  //       }
 
-//       return Object.keys(snapshot.val());
-//     } catch (error) {
-//       console.error("Error getting soil analyzer devices:", error);
-//       throw error;
-//     }
-//   }
+  //       return Object.keys(snapshot.val());
+  //     } catch (error) {
+  //       console.error("Error getting soil analyzer devices:", error);
+  //       throw error;
+  //     }
+  //   }
 
   // For Food Moisture devices
   public async getFoodMoistureReadings(deviceId: string): Promise<{
@@ -234,6 +237,63 @@ class FirebaseService {
       };
     } catch (error) {
       console.error("Error getting food moisture readings:", error);
+      throw error;
+    }
+  }
+
+  // Add method to send notifications
+  public async sendNotification(
+    token: string,
+    title: string,
+    body: string,
+    data?: any
+  ): Promise<string> {
+    try {
+      const message = {
+        notification: {
+          title,
+          body,
+        },
+        data: data || {},
+        token,
+      };
+
+      const response = await this.fcm.send(message);
+      console.log("Successfully sent message:", response);
+      return response;
+    } catch (error) {
+      console.error("Error sending notification:", error);
+      throw error;
+    }
+  }
+
+  // Add method to send notifications to multiple devices
+  public async sendMulticastNotification(
+    tokens: string[],
+    title: string,
+    body: string,
+    data?: any
+  ): Promise<any> {
+    try {
+      if (tokens.length === 0) {
+        console.log("No device tokens provided for notifications");
+        return null;
+      }
+
+      const message = {
+        notification: {
+          title,
+          body,
+        },
+        data: data || {},
+        tokens,
+      };
+
+      const response = await this.fcm.sendMulticast(message);
+      console.log("Successfully sent multicast message:", response);
+      return response;
+    } catch (error) {
+      console.error("Error sending multicast notification:", error);
       throw error;
     }
   }
