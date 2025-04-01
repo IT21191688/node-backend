@@ -4,6 +4,7 @@ exports.firebaseService = void 0;
 const app_1 = require("firebase-admin/app");
 const database_1 = require("firebase-admin/database");
 const firestore_1 = require("firebase-admin/firestore");
+const messaging_1 = require("firebase-admin/messaging");
 class FirebaseService {
     constructor() {
         try {
@@ -21,6 +22,7 @@ class FirebaseService {
             });
             this.db = (0, firestore_1.getFirestore)(app);
             this.rtdb = (0, database_1.getDatabase)(app);
+            this.fcm = (0, messaging_1.getMessaging)(app);
             console.log("Firebase initialized successfully");
         }
         catch (error) {
@@ -96,6 +98,48 @@ class FirebaseService {
         }
         catch (error) {
             console.error("Error getting food moisture readings:", error);
+            throw error;
+        }
+    }
+    async sendNotification(token, title, body, data) {
+        try {
+            const message = {
+                notification: {
+                    title,
+                    body,
+                },
+                data: data || {},
+                token,
+            };
+            const response = await this.fcm.send(message);
+            console.log("Successfully sent message:", response);
+            return response;
+        }
+        catch (error) {
+            console.error("Error sending notification:", error);
+            throw error;
+        }
+    }
+    async sendMulticastNotification(tokens, title, body, data) {
+        try {
+            if (tokens.length === 0) {
+                console.log("No device tokens provided for notifications");
+                return null;
+            }
+            const message = {
+                notification: {
+                    title,
+                    body,
+                },
+                data: data || {},
+                tokens,
+            };
+            const response = await this.fcm.sendMulticast(message);
+            console.log("Successfully sent multicast message:", response);
+            return response;
+        }
+        catch (error) {
+            console.error("Error sending multicast notification:", error);
             throw error;
         }
     }

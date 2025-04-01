@@ -14,24 +14,26 @@ const actualYieldRoutes_1 = __importDefault(require("./actualYieldRoutes"));
 const pricePredictionRoutes_1 = __importDefault(require("./pricePredictionRoutes"));
 const copraRoutes_1 = __importDefault(require("./copraRoutes"));
 const rateLimiter_1 = require("../middleware/rateLimiter");
+const notificationRoutes_1 = __importDefault(require("./notificationRoutes"));
 const router = (0, express_1.Router)();
-router.get('/health', (_req, res) => {
+router.get("/health", (_req, res) => {
     res.status(200).json({
-        status: 'success',
-        message: 'API is healthy',
+        status: "success",
+        message: "API is healthy",
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV
+        environment: process.env.NODE_ENV,
     });
 });
 router.use(rateLimiter_1.rateLimiters.public);
-router.use('/v1/auth', authRoutes_1.default);
-router.use('/v1/users', userRoutes_1.default);
-router.use('/v1/watering', wateringRoutes_1.default);
-router.use('/v1/locations', locationRoutes_1.default);
-router.use('/v1/devices', deviceRoutes_1.default);
-router.use('/v1/yield', yieldPredictionRoutes_1.default);
-router.use('/v1/actual-yield', actualYieldRoutes_1.default);
-router.use('/v1/price', pricePredictionRoutes_1.default);
-router.use('/v1/copra', copraRoutes_1.default);
+router.use("/v1/auth", authRoutes_1.default);
+router.use("/v1/users", userRoutes_1.default);
+router.use("/v1/watering", wateringRoutes_1.default);
+router.use("/v1/locations", locationRoutes_1.default);
+router.use("/v1/devices", deviceRoutes_1.default);
+router.use("/v1/yield", yieldPredictionRoutes_1.default);
+router.use("/v1/actual-yield", actualYieldRoutes_1.default);
+router.use("/v1/price", pricePredictionRoutes_1.default);
+router.use("/v1/copra", copraRoutes_1.default);
+router.use("/v1/notifications", notificationRoutes_1.default);
 exports.default = router;
 //# sourceMappingURL=index.js.map
