@@ -1,56 +1,9 @@
-// src/services/notificationService.ts
-import { Types } from "mongoose";
-import { DeviceToken } from "../models/deviceToken";
 import { firebaseService } from "../config/firebase";
 import { User } from "../models/user";
+import { Device } from "../models/device";
+import { Location } from "../models/location";
 
 export class NotificationService {
-  /**
-   * Register a device token for a user
-   */
-  async registerDeviceToken(
-    userId: string,
-    token: string,
-    device?: string
-  ): Promise<void> {
-    try {
-      // Check if token already exists
-      const existingToken = await DeviceToken.findOne({ token });
-
-      if (existingToken) {
-        // Update the token with the new userId if it's different
-        if (existingToken.userId.toString() !== userId) {
-          existingToken.userId = new Types.ObjectId(userId);
-          if (device) existingToken.device = device;
-          await existingToken.save();
-        }
-        return;
-      }
-
-      // Create new token
-      await DeviceToken.create({
-        userId: new Types.ObjectId(userId),
-        token,
-        device,
-      });
-    } catch (error) {
-      console.error("Error registering device token:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Remove a device token
-   */
-  async removeDeviceToken(token: string): Promise<void> {
-    try {
-      await DeviceToken.findOneAndDelete({ token });
-    } catch (error) {
-      console.error("Error removing device token:", error);
-      throw error;
-    }
-  }
-
   /**
    * Send notification to a specific user
    */
@@ -61,19 +14,23 @@ export class NotificationService {
     data?: any
   ): Promise<void> {
     try {
-      const tokens = await this.getUserTokens(userId);
+      // Find user by ID to get FCM token
+      const user = await User.findById(userId);
 
-      if (tokens.length === 0) {
-        console.log(`No device tokens found for user ${userId}`);
+      if (!user) {
+        console.log(`User not found: ${userId}`);
         return;
       }
 
-      await firebaseService.sendMulticastNotification(
-        tokens,
-        title,
-        body,
-        data
-      );
+      if (!user.fcmToken) {
+        console.log(`No FCM token found for user ${userId}`);
+        return;
+      }
+
+      // Send notification using Firebase service
+      await firebaseService.sendNotification(user.fcmToken, title, body, data);
+
+      console.log(`Notification sent to user ${userId}`);
     } catch (error) {
       console.error("Error sending notification to user:", error);
       throw error;
@@ -81,22 +38,7 @@ export class NotificationService {
   }
 
   /**
-   * Get all device tokens for a user
-   */
-  async getUserTokens(userId: string): Promise<string[]> {
-    try {
-      const deviceTokens = await DeviceToken.find({
-        userId: new Types.ObjectId(userId),
-      });
-      return deviceTokens.map((dt) => dt.token);
-    } catch (error) {
-      console.error("Error getting user tokens:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Send notification to users with low water level
+   * Send notification to users with low water/moisture level
    */
   async sendLowMoistureLevelNotifications(
     deviceId: string,
@@ -104,38 +46,48 @@ export class NotificationService {
     moistureLevel: number
   ): Promise<void> {
     try {
-      // Find the device to get the location and user
-      const device = await this.getDeviceWithUser(deviceId);
+      // Find the device to get the associated user
+      const device = await Device.findOne({ deviceId });
 
-      if (!device || !device.userId) {
-        console.log(`No device or user found for device ${deviceId}`);
+      if (!device) {
+        console.log(`Device not found: ${deviceId}`);
         return;
       }
 
-      const locationDisplayName = locationName || "your location";
+      // Find location if not provided
+      let locationDisplayName = locationName;
+      if (!locationDisplayName) {
+        const location = await Location.findOne({ deviceId });
+        locationDisplayName = location ? location.name : "your farm";
+      }
+
+      // Prepare notification content
       const title = "Low Soil Moisture Alert";
       const body = `Soil moisture level at ${locationDisplayName} is ${moistureLevel}%. Consider watering soon.`;
 
-      await this.sendNotificationToUser(device.userId.toString(), title, body, {
+      // Prepare data payload for potential deep linking
+      const data = {
         type: "low_moisture",
         deviceId,
         moistureLevel: String(moistureLevel),
         locationName: locationDisplayName,
-      });
+      };
+
+      // Send notification to the device owner
+      await this.sendNotificationToUser(
+        device.userId.toString(),
+        title,
+        body,
+        data
+      );
+
+      console.log(
+        `Low moisture notification sent for device ${deviceId} at ${locationDisplayName}`
+      );
     } catch (error) {
       console.error("Error sending low moisture notifications:", error);
+      throw error;
     }
-  }
-
-  /**
-   * Helper to get device with user info
-   */
-  private async getDeviceWithUser(deviceId: string): Promise<any> {
-    // You'll need to implement this based on your data structure
-    // This is a placeholder that returns the device with user info
-    const Device = require("../models/device").Device;
-    const device = await Device.findOne({ deviceId });
-    return device;
   }
 }
 
