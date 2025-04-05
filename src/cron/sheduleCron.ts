@@ -38,7 +38,7 @@ export class ScheduleCron {
       }
     });
 
-    cron.schedule("*/2 * * * *", async () => {
+    cron.schedule("*/5 * * * *", async () => {
       console.log("Starting moisture level check...");
       try {
         await this.checkMoistureLevels();
