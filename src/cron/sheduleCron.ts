@@ -1,59 +1,16 @@
-// import cron from "node-cron";
-// import { WateringService } from "../services/wateringService";
-// import { DeviceService } from "../services/deviceService";
-// import { notificationService } from "../services/notificationService";
-// import { Location } from "../models/location";
-
-// export class ScheduleCron {
-//   private wateringService: WateringService;
-//   private DeviceService: DeviceService;
-
-//   constructor() {
-//     this.wateringService = new WateringService();
-//     this.DeviceService = new DeviceService();
-//     this.initCronJobs();
-//   }
-
-//   // Examples:
-//   // '0 6 * * *'  // 6:00 AM every day
-//   // '0 7 * * *'  // 7:00 AM every day
-//   // '0 */6 * * *' // Every 6 hours
-//   // '0 6,18 * * *' // Twice a day at 6 AM and 6 PM
-
-//   private initCronJobs() {
-//     // Run every day at 6:00 AM
-//     cron.schedule("0 6 * * *", async () => {
-//       // console.log('Starting daily schedule creation...');
-//       try {
-//         await this.wateringService.createDailySchedules();
-//         // console.log('Daily schedule creation completed successfully');
-//       } catch (error) {
-//         console.error("Error in cron job:", error);
-//       }
-//     });
-
-//     cron.schedule("* * * * *", async () => {
-//       // console.log('Starting battery level updates...');
-//       try {
-//         const result = await this.DeviceService.updateDeviceBatteryLevels();
-//       } catch (error) {
-//         console.error("Error in battery update cron job:", error);
-//       }
-//     });
-//   }
-// }
-// src/cron/sheduleCron.ts
 import cron from "node-cron";
 import { WateringService } from "../services/wateringService";
 import { DeviceService } from "../services/deviceService";
 import { firebaseService } from "../config/firebase";
 import { notificationService } from "../services/notificationService";
-import { Location } from "../models/location";
 import { Device } from "../models/device";
+import { Location } from "../models/location";
 
 export class ScheduleCron {
   private wateringService: WateringService;
   private deviceService: DeviceService;
+  // Threshold for low moisture alert (in percent)
+  private readonly MOISTURE_THRESHOLD = 30;
 
   constructor() {
     this.wateringService = new WateringService();
@@ -62,12 +19,11 @@ export class ScheduleCron {
   }
 
   private initCronJobs() {
-    // Run every day at 6:00 AM
     cron.schedule("0 6 * * *", async () => {
-      // console.log('Starting daily schedule creation...');
+      console.log("Starting daily schedule creation...");
       try {
         await this.wateringService.createDailySchedules();
-        // console.log('Daily schedule creation completed successfully');
+        console.log("Daily schedule creation completed successfully");
       } catch (error) {
         console.error("Error in cron job:", error);
       }
@@ -75,16 +31,14 @@ export class ScheduleCron {
 
     // Run every minute to update battery levels
     cron.schedule("* * * * *", async () => {
-      // console.log('Starting battery level updates...');
       try {
-        const result = await this.deviceService.updateDeviceBatteryLevels();
+        await this.deviceService.updateDeviceBatteryLevels();
       } catch (error) {
         console.error("Error in battery update cron job:", error);
       }
     });
 
-    // New job: Check moisture levels every 2 minutes
-    cron.schedule("*/2 * * * *", async () => {
+    cron.schedule("*/5 * * * *", async () => {
       console.log("Starting moisture level check...");
       try {
         await this.checkMoistureLevels();
@@ -95,40 +49,55 @@ export class ScheduleCron {
     });
   }
 
-  // New method to check moisture levels and send notifications
+  // Method to check moisture levels and send notifications
   private async checkMoistureLevels() {
     try {
-      // Get all active devices
+      // Get all active soil sensor devices
       const devices = await Device.find({
         isActive: true,
         status: "active",
+        type: "soil_sensor",
       });
 
       console.log(`Checking moisture levels for ${devices.length} devices...`);
 
       for (const device of devices) {
         try {
-          // Only process soil sensors
-          if (device.type !== "soil_sensor") continue;
-
-          // Get the latest moisture readings
+          // Get the latest moisture readings from Firebase
           const readings = await firebaseService.getSoilMoistureReadings(
             device.deviceId
           );
+
           if (!readings) {
             console.log(`No readings available for device ${device.deviceId}`);
             continue;
           }
 
-          // Calculate average moisture level
+          // Save the latest reading to the device record
+          device.lastReading = {
+            moisture10cm: readings.moisture10cm,
+            moisture20cm: readings.moisture20cm,
+            moisture30cm: readings.moisture30cm,
+            timestamp: readings.timestamp,
+          };
+
+          // Also update battery level if available
+          if (readings.batteryLevel !== undefined) {
+            device.batteryLevel = readings.batteryLevel;
+          }
+
+          // Save the updated device record
+          await device.save();
+
+          // Calculate average moisture level from all depths
           const avgMoisture =
             (readings.moisture10cm +
               readings.moisture20cm +
               readings.moisture30cm) /
             3;
 
-          // Check if moisture level is below threshold (30%)
-          if (avgMoisture < 30) {
+          // Check if moisture level is below threshold
+          if (avgMoisture < this.MOISTURE_THRESHOLD) {
             console.log(
               `Low moisture detected for device ${device.deviceId}: ${avgMoisture.toFixed(1)}%`
             );
@@ -137,17 +106,13 @@ export class ScheduleCron {
             const location = await Location.findOne({
               deviceId: device.deviceId,
             });
-            const locationName = location ? location.name : "Unknown location";
+            const locationName: any = location ? location.name : undefined;
 
             // Send notification
             await notificationService.sendLowMoistureLevelNotifications(
               device.deviceId,
               locationName,
               Math.round(avgMoisture)
-            );
-
-            console.log(
-              `Notification sent for device ${device.deviceId} at ${locationName}`
             );
           }
         } catch (deviceError) {

@@ -1,25 +1,14 @@
-// src/routes/notificationRoutes.ts
-import { Router } from "express";
-import { authenticateJWT } from "../middleware/auth";
-import { NotificationController } from "../controllers/notificationController";
-import { rateLimiters } from "../middleware/rateLimiter";
+import express from "express";
+import { notificationController } from "../controllers/notificationController";
 
-const router = Router();
-const notificationController = new NotificationController();
+const router = express.Router();
 
-// Apply authentication to all routes
-router.use(authenticateJWT);
+router.post("/update-token", notificationController.updateFcmToken);
 
-// Apply rate limiting
-router.use(rateLimiters.public);
+router.post("/test", notificationController.testNotification);
 
-// Register device token
-router.post("/register-token", notificationController.registerToken);
+router.post("/test-moisture", notificationController.testMoistureNotification);
 
-// Unregister device token
-router.delete("/unregister-token", notificationController.unregisterToken);
-
-// Test route (for development only)
-router.post("/test-notification", notificationController.testNotification);
+router.post("/check-moisture", notificationController.triggerMoistureCheck);
 
 export default router;
