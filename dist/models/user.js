@@ -43,21 +43,21 @@ const utils_1 = require("../utils");
 const userSchema = new mongoose_1.Schema({
     name: {
         type: String,
-        required: [true, 'Name is required'],
+        required: [true, "Name is required"],
         trim: true,
-        minlength: [2, 'Name must be at least 2 characters long'],
-        maxlength: [50, 'Name cannot be more than 50 characters']
+        minlength: [2, "Name must be at least 2 characters long"],
+        maxlength: [50, "Name cannot be more than 50 characters"],
     },
     email: {
         type: String,
-        required: [true, 'Email is required'],
+        required: [true, "Email is required"],
         unique: true,
         trim: true,
         lowercase: true,
         validate: {
             validator: utils_1.validateEmail,
-            message: 'Please provide a valid email'
-        }
+            message: "Please provide a valid email",
+        },
     },
     phone: {
         type: String,
@@ -66,32 +66,38 @@ const userSchema = new mongoose_1.Schema({
             validator: function (v) {
                 return /^\+?[\d\s()-]{8,20}$/.test(v);
             },
-            message: props => `${props.value} is not a valid phone number!`
-        }
+            message: (props) => `${props.value} is not a valid phone number!`,
+        },
     },
     password: {
         type: String,
-        required: [true, 'Password is required'],
-        minlength: [8, 'Password must be at least 8 characters long'],
-        select: false
+        required: [true, "Password is required"],
+        minlength: [8, "Password must be at least 8 characters long"],
+        select: false,
     },
     role: {
         type: String,
-        enum: ['user', 'admin'],
-        default: 'user'
+        enum: ["user", "admin"],
+        default: "user",
+    },
+    fcmToken: {
+        type: String,
+        default: null,
     },
     isActive: {
         type: Boolean,
-        default: true
+        default: true,
     },
     lastLogin: {
-        type: Date
+        type: Date,
     },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
 }, {
-    timestamps: true
+    timestamps: true,
 });
-userSchema.pre('save', async function (next) {
-    if (!this.isModified('password'))
+userSchema.pre("save", async function (next) {
+    if (!this.isModified("password"))
         return next();
     try {
         const salt = await bcryptjs_1.default.genSalt(10);
@@ -105,20 +111,22 @@ userSchema.pre('save', async function (next) {
 });
 userSchema.methods.comparePassword = async function (candidatePassword) {
     try {
-        const user = await this.model('User').findById(this._id).select('+password');
+        const user = await this.model("User")
+            .findById(this._id)
+            .select("+password");
         if (!user)
             return false;
         return await bcryptjs_1.default.compare(candidatePassword, user.password);
     }
     catch (error) {
-        throw new Error('Error comparing passwords');
+        throw new Error("Error comparing passwords");
     }
 };
-userSchema.set('toJSON', {
+userSchema.set("toJSON", {
     transform: function (_doc, ret) {
         delete ret.password;
         return ret;
-    }
+    },
 });
-exports.User = mongoose_1.default.model('User', userSchema);
+exports.User = mongoose_1.default.model("User", userSchema);
 //# sourceMappingURL=user.js.map

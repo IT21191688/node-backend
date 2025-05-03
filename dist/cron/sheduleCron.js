@@ -9,18 +9,21 @@ const wateringService_1 = require("../services/wateringService");
 const deviceService_1 = require("../services/deviceService");
 const firebase_1 = require("../config/firebase");
 const notificationService_1 = require("../services/notificationService");
-const location_1 = require("../models/location");
 const device_1 = require("../models/device");
+const location_1 = require("../models/location");
 class ScheduleCron {
     constructor() {
+        this.MOISTURE_THRESHOLD = 30;
         this.wateringService = new wateringService_1.WateringService();
         this.deviceService = new deviceService_1.DeviceService();
         this.initCronJobs();
     }
     initCronJobs() {
         node_cron_1.default.schedule("0 6 * * *", async () => {
+            console.log("Starting daily schedule creation...");
             try {
                 await this.wateringService.createDailySchedules();
+                console.log("Daily schedule creation completed successfully");
             }
             catch (error) {
                 console.error("Error in cron job:", error);
@@ -28,7 +31,7 @@ class ScheduleCron {
         });
         node_cron_1.default.schedule("* * * * *", async () => {
             try {
-                const result = await this.deviceService.updateDeviceBatteryLevels();
+                await this.deviceService.updateDeviceBatteryLevels();
             }
             catch (error) {
                 console.error("Error in battery update cron job:", error);
@@ -50,29 +53,37 @@ class ScheduleCron {
             const devices = await device_1.Device.find({
                 isActive: true,
                 status: "active",
+                type: "soil_sensor",
             });
             console.log(`Checking moisture levels for ${devices.length} devices...`);
             for (const device of devices) {
                 try {
-                    if (device.type !== "soil_sensor")
-                        continue;
                     const readings = await firebase_1.firebaseService.getSoilMoistureReadings(device.deviceId);
                     if (!readings) {
                         console.log(`No readings available for device ${device.deviceId}`);
                         continue;
                     }
+                    device.lastReading = {
+                        moisture10cm: readings.moisture10cm,
+                        moisture20cm: readings.moisture20cm,
+                        moisture30cm: readings.moisture30cm,
+                        timestamp: readings.timestamp,
+                    };
+                    if (readings.batteryLevel !== undefined) {
+                        device.batteryLevel = readings.batteryLevel;
+                    }
+                    await device.save();
                     const avgMoisture = (readings.moisture10cm +
                         readings.moisture20cm +
                         readings.moisture30cm) /
                         3;
-                    if (avgMoisture < 30) {
+                    if (avgMoisture < this.MOISTURE_THRESHOLD) {
                         console.log(`Low moisture detected for device ${device.deviceId}: ${avgMoisture.toFixed(1)}%`);
                         const location = await location_1.Location.findOne({
                             deviceId: device.deviceId,
                         });
-                        const locationName = location ? location.name : "Unknown location";
+                        const locationName = location ? location.name : undefined;
                         await notificationService_1.notificationService.sendLowMoistureLevelNotifications(device.deviceId, locationName, Math.round(avgMoisture));
-                        console.log(`Notification sent for device ${device.deviceId} at ${locationName}`);
                     }
                 }
                 catch (deviceError) {
