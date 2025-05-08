@@ -37,7 +37,7 @@ class ScheduleCron {
                 console.error("Error in battery update cron job:", error);
             }
         });
-        node_cron_1.default.schedule("*/2 * * * *", async () => {
+        node_cron_1.default.schedule("*/5 * * * *", async () => {
             console.log("Starting moisture level check...");
             try {
                 await this.checkMoistureLevels();
