@@ -94,7 +94,7 @@ class YieldPredictionController {
           long_term_prediction: prediction.long_term_prediction,
           month: prediction.month,
           month_name: prediction.month_name,
-          seasonal_factor: prediction.seasonal_factor,
+          // seasonal_factor: prediction.seasonal_factor,
           seasonal_prediction: prediction.seasonal_prediction,
           ensemble_prediction: prediction.ensemble_prediction,
           year: prediction.year
