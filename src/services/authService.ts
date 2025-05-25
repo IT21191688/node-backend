@@ -1,112 +1,146 @@
-import { IUser } from '../models/user';
-import { AppError } from '../middleware/errorHandler';
-import { UserService } from './userService';
-import { generateAuthToken, generateRefreshToken } from '../middleware/auth';
-import { generateToken } from '../utils';
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
+import { IUser } from "../models/user";
+import { AppError } from "../middleware/errorHandler";
+import { UserService } from "./userService";
+import { generateAuthToken, generateRefreshToken } from "../middleware/auth";
+import { generateToken } from "../utils";
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import { Url } from "../models/urlModel";
 
 export class AuthService {
-    private userService: UserService;
+  private userService: UserService;
 
-    constructor() {
-        this.userService = new UserService();
+  constructor() {
+    this.userService = new UserService();
+  }
+
+  /**
+   * Register new user
+   */
+  async register(userData: Partial<IUser>): Promise<{
+    user: Partial<IUser>;
+    token: string;
+    refreshToken: string;
+  }> {
+    const user = await this.userService.createUser(userData);
+    const token = generateAuthToken(user._id!.toString());
+    const refreshToken = generateRefreshToken(user._id!.toString());
+
+    return { user, token, refreshToken };
+  }
+
+  /**
+   * Login user
+   */
+  async login(
+    email: string,
+    password: string
+  ): Promise<{
+    user: Partial<IUser>;
+    token: string;
+    refreshToken: string;
+  }> {
+    // Find user
+    const user: any = await this.userService.findByEmail(email);
+    if (!user) {
+      throw new AppError(401, "Invalid credentials");
     }
 
-    /**
-     * Register new user
-     */
-    async register(userData: Partial<IUser>): Promise<{
-        user: Partial<IUser>;
-        token: string;
-        refreshToken: string;
-    }> {
-        const user = await this.userService.createUser(userData);
-        const token = generateAuthToken(user._id!.toString());
-        const refreshToken = generateRefreshToken(user._id!.toString());
-
-        return { user, token, refreshToken };
+    // Check password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw new AppError(401, "Invalid credentials");
     }
 
-    /**
-     * Login user
-     */
-    async login(email: string, password: string): Promise<{
-        user: Partial<IUser>;
-        token: string;
-        refreshToken: string;
-    }> {
-        // Find user
-        const user:any = await this.userService.findByEmail(email);
-        if (!user) {
-            throw new AppError(401, 'Invalid credentials');
-        }
+    // Update last login
+    await this.userService.updateLastLogin(user._id);
 
-        // Check password
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            throw new AppError(401, 'Invalid credentials');
-        }
+    const token = generateAuthToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
 
-        // Update last login
-        await this.userService.updateLastLogin(user._id);
+    return {
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      token,
+      refreshToken,
+    };
+  }
 
-        const token = generateAuthToken(user._id);
-        const refreshToken = generateRefreshToken(user._id);
+  /**
+   * Generate password reset token
+   */
+  async createPasswordResetToken(email: string): Promise<string> {
+    const user: any = await this.userService.findByEmail(email);
+    if (!user) {
+      throw new AppError(404, "User not found");
+    }
 
+    const resetToken = generateToken(32);
+    const resetTokenHash = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    await this.userService.updateUser(user._id, {
+      resetPasswordToken: resetTokenHash,
+      resetPasswordExpire: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
+    } as Partial<IUser>);
+
+    return resetToken;
+  }
+
+  /**
+   * Reset password
+   */
+  async resetPassword(token: string, password: string): Promise<void> {
+    const resetTokenHash = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    const user: any = await this.userService.findByResetToken(resetTokenHash);
+    if (!user) {
+      throw new AppError(400, "Invalid or expired reset token");
+    }
+
+    // Update password
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+  }
+
+  async getApiUrls(): Promise<{
+    url1: string;
+    url2: string;
+  }> {
+    try {
+      console.log("AuthService - getApiUrls called");
+
+      // Find the URL configuration document
+      const urlConfig: any | null = await Url.findOne({}).exec();
+
+      console.log("URL config retrieved:", urlConfig);
+
+      if (!urlConfig) {
+        console.log("No URL config found, returning defaults");
         return {
-            user: { 
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            },
-            token,
-            refreshToken
+          url1: "https://default-url1.com",
+          url2: "https://default-url2.com",
         };
+      }
+
+      return {
+        url1: urlConfig["url-1"] || "https://default-url1.com",
+        url2: urlConfig["url-2"] || "https://default-url2.com",
+      };
+    } catch (error) {
+      console.error("Error fetching API URLs:", error);
+      throw new AppError(500, "Failed to fetch API URLs");
     }
-
-    /**
-     * Generate password reset token
-     */
-    async createPasswordResetToken(email: string): Promise<string> {
-        const user:any = await this.userService.findByEmail(email);
-        if (!user) {
-            throw new AppError(404, 'User not found');
-        }
-
-        const resetToken = generateToken(32);
-        const resetTokenHash = crypto
-            .createHash('sha256')
-            .update(resetToken)
-            .digest('hex');
-
-        await this.userService.updateUser(user._id, {
-            resetPasswordToken: resetTokenHash,
-            resetPasswordExpire: new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
-        } as Partial<IUser>);
-
-        return resetToken;
-    }
-
-    /**
-     * Reset password
-     */
-    async resetPassword(token: string, password: string): Promise<void> {
-        const resetTokenHash = crypto
-            .createHash('sha256')
-            .update(token)
-            .digest('hex');
-
-        const user:any = await this.userService.findByResetToken(resetTokenHash);
-        if (!user) {
-            throw new AppError(400, 'Invalid or expired reset token');
-        }
-
-        // Update password
-        user.password = password;
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpire = undefined;
-        await user.save();
-    }
+  }
 }
